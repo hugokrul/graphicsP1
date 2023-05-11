@@ -1,4 +1,6 @@
-namespace Template
+using OpenTK.Graphics.OpenGL;
+
+namespace INFOGR2023Template
 {
     class MyApplication
     {
@@ -9,17 +11,20 @@ namespace Template
         {
             this.screen = screen;
         }
+
         // initialize
         public void Init()
         {
-
+            Camera camera = new Camera();
+            Console.WriteLine(camera.position);
         }
         // tick: renders one frame
         public void Tick()
         {
-            screen.Clear(0);
-            screen.Print("hello world", 2, 2, 0xffffff);
-            screen.Line(2, 20, 160, 20, 0xff0000);
+            screen.Line(220, 150, 420, 150, 0xffffff); 
+            screen.Line(220, 150, 220, 250, 0xffffff); 
+            screen.Line(420, 150, 420, 250, 0xffffff); 
+            screen.Line(220, 250, 420, 250, 0xffffff);
         }
     }
 }
