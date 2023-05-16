@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace INFOGR2023Template
 {
-    internal class Scene
+    public class Scene
     {
-        List<Primitive> primitives;
-        List<Light> lights;
+        public List<Primitive> primitives;
+        public List<Light> lights;
 
-        public Scene(List<Primitive> p, List<Light> l)
+        public Scene()
         {
-            primitives = p;
-            lights = l;
+            primitives = new List<Primitive>();
+            lights = new List<Light>();
         }
     }
 }

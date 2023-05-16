@@ -3,40 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Mathematics;
 
 namespace INFOGR2023Template
 {
     public class Primitive
     {
-        public float color = 0x000000;
+        public Vector3 color;
 
-        public Primitive(float c)
+        public Primitive(Vector3 color)
         {
-            color = c;
+            this.color = color;
         }
     }
 
     public class Sphere : Primitive
     {
-        public int position;
-        public int radius;
+        public Vector3 position;
+        public float radius;
 
-        public Sphere(int p, int r, float c) : base(c)
+        public Sphere(Vector3 position, float radius, Vector3 color) : base(color)
         {
-            position = p;
-            radius = r;
+            this.position = position;
+            this.radius = radius;
         }
     }
 
     public class Plane : Primitive
     {
-        public int normal;
-        public int distance;
+        public Vector3 normal;
+        public float distance;
 
-        public Plane(int n, int d, float c) : base(c)
+        public Plane(Vector3 normal, float distance, Vector3 color) : base(color)
         {
-            normal = n;
-            distance = d;
+            this.normal = normal;
+            this.distance = distance;
         }
     }
 }
