@@ -21,6 +21,9 @@ namespace INFOGR2023Template
         {
             screen.Clear(0);
             raytracer.RenderDebug();
+            raytracer.Render();
+
+            screen.Line(screen.width / 2, 0, screen.width / 2, screen.height, 0xffffff);
         }
     }
 }
