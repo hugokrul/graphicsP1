@@ -41,10 +41,10 @@ namespace INFOGR2023Template
                     Vector3 u = camera.p1 - camera.p0;
                     Vector3 v = camera.p2 - camera.p0;
 
-                    decimal a = (decimal)x / (decimal)(screen.width/2);
-                    decimal b = (decimal)y / (decimal)(screen.height);
+                    float a = (float)x / (float)(screen.width/2);
+                    float b = (float)y / (float)(screen.height);
 
-                    Vector3 point = camera.p0 + (float)a * u + (float)b * v;
+                    Vector3 point = camera.p0 + a * u + b * v;
                     Vector3 direction = Vector3.Normalize(point - camera.position);
 
                     Ray ray = new Ray(camera.position, direction, maxRayDistance);
