@@ -23,9 +23,9 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            //scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0)));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0)));
-            //scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
+            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -41,10 +41,10 @@ namespace INFOGR2023Template
                     Vector3 u = camera.p1 - camera.p0;
                     Vector3 v = camera.p2 - camera.p0;
 
-                    int a = x / (screen.width / 2);
-                    int b = y / (screen.height / 2);
+                    decimal a = (decimal)x / (decimal)(screen.width/2);
+                    decimal b = (decimal)y / (decimal)(screen.height);
 
-                    Vector3 point = camera.p0 + a * u + b * v;
+                    Vector3 point = camera.p0 + (float)a * u + (float)b * v;
                     Vector3 direction = Vector3.Normalize(point - camera.position);
 
                     Ray ray = new Ray(camera.position, direction, maxRayDistance);
