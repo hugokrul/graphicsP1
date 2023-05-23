@@ -65,7 +65,6 @@ namespace INFOGR2023Template
                         }
                         screen.pixels[position] = color(closestIntersection.primitive.color);
                     }
-                    // Console.WriteLine(closestIntersection.distance);
                 } 
             }
         }
