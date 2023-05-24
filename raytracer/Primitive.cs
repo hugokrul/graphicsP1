@@ -32,11 +32,13 @@ namespace INFOGR2023Template
     public class Plane : Primitive
     {
         public Vector3 normal;
+        public Vector3 point;
         public float distance;
 
-        public Plane(Vector3 normal, float distance, Vector3 color) : base(color)
+        public Plane(Vector3 normal, float distance, Vector3 point, Vector3 color) : base(color)
         {
             this.normal = normal;
+            this.point = point;
             this.distance = distance;
         }
     }

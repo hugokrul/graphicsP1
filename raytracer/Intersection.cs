@@ -26,7 +26,7 @@ namespace INFOGR2023Template
                     intersectWithSphere(s, ray);
                     break;
                 case Plane p:
-                    intersectWithPlane();
+                    intersectWithPlane(p, ray);
                     break;
             }
         }
@@ -53,9 +53,22 @@ namespace INFOGR2023Template
 
         }
 
-        public void intersectWithPlane()
+        public void intersectWithPlane(Plane p, Ray ray)
         {
             // page 21 van slides 4 intro to raytracing
+            var denominator = Vector3.Dot(p.normal, ray.D);
+
+            if (Math.Abs(denominator) > 0.001f)
+            {
+                var difference = p.point - ray.E;
+                var t = Vector3.Dot(difference, p.normal) / denominator;
+
+                if (t > 0.0001f)
+                {
+                    this.distance = t;
+                    ray.t = t;
+                }
+            }
         }
     }
 }

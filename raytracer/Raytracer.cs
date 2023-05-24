@@ -26,6 +26,7 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0)));
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
+            scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(0, 255, 255)));
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -89,6 +90,9 @@ namespace INFOGR2023Template
 
                             screen.Plot(tx(x), ty(y), color(s.color));
                         }
+                        break;
+                    case Plane p:
+                        
                         break;
                 }
             }
