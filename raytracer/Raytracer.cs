@@ -29,7 +29,7 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255)));
 
-            scene.lights.Add(new Light(new Vector3(-5, 10, 1.5f), 10, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(5, 2, 3), 10, new Vector3(255, 255, 255)));
 
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
@@ -81,7 +81,7 @@ namespace INFOGR2023Template
                         bool lightBlocked = false;
                         foreach (Light light in scene.lights) {
 
-                            Vector3 LightDirection = light.position - primaryIntersection;
+                            Vector3 LightDirection = primaryIntersection - light.position;
                             Vector3 LightDirectionNormalized = Vector3.Normalize(LightDirection);
 
                             float maxShadowRayDistance = 100f; //needs to be calculated (restrictions on t)
@@ -109,12 +109,10 @@ namespace INFOGR2023Template
 
                         if (lightBlocked)
                         {
-                            screen.pixels[position] = color(closestIntersection.primitive.color);
-                            
+                            screen.pixels[position] = color(new Vector3(25, 255, 255));                
                         }
                         else {
-                            //screen.pixels[position] = color(new Vector3(0, 0, 0));
-
+                            screen.pixels[position] = color(closestIntersection.primitive.color);
                         }
                     }
                 } 
