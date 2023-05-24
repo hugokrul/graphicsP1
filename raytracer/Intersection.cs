@@ -46,8 +46,8 @@ namespace INFOGR2023Template
             float disc = (b * b) - (4.0f * a * c);
             if (disc > 0)
             {
-                this.distance = (float)Math.Min((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
-                ray.t = (float)Math.Min((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
+                this.distance = -(float)Math.Max((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
+                ray.t = (float)Math.Max((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
             }
 
 
