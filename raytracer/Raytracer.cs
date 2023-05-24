@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,10 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0)));
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255)));
+
+            scene.lights.Add(new Light(new Vector3(-5, 10, 1.5f), 10, new Vector3(255, 255, 255)));
+
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -45,10 +50,16 @@ namespace INFOGR2023Template
                     float b = (float)y / (float)(screen.height);
 
                     Vector3 point = camera.p0 + a * u + b * v;
-                    Vector3 direction = Vector3.Normalize(point - camera.position);
+                    Vector3 Direction = Vector3.Normalize(point - camera.position);
 
-                    Ray ray = new Ray(camera.position, direction, maxRayDistance);
+                    Ray ray = new Ray(camera.position, Direction, maxRayDistance);
 
+                    //Debug rays
+                    
+                    if (x % 20 == 0 && y == 0)
+                    {
+                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(Direction.X * maxRayDistance), ty(Direction.Z * maxRayDistance), 0x473f0a);
+                    }
 
                     Intersection? closestIntersection = null;
                     foreach (Primitive primitive in scene.primitives)
@@ -63,7 +74,48 @@ namespace INFOGR2023Template
                         {
                             closestIntersection = intersection;
                         }
-                        screen.pixels[position] = color(closestIntersection.primitive.color);
+
+                        Vector3 primaryIntersection = closestIntersection.ray.D * closestIntersection.distance;
+                        
+                        //Lights
+                        bool lightBlocked = false;
+                        foreach (Light light in scene.lights) {
+
+                            Vector3 LightDirection = light.position - primaryIntersection;
+                            Vector3 LightDirectionNormalized = Vector3.Normalize(LightDirection);
+
+                            float maxShadowRayDistance = 100f; //needs to be calculated (restrictions on t)
+
+                            Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, maxShadowRayDistance);
+
+                           
+                            if (x % 20 == 0) {
+                                screen.Line(tx(primaryIntersection.X), ty(primaryIntersection.Z), tx(LightDirection.X * maxShadowRayDistance), ty(LightDirection.Z * maxShadowRayDistance), 0xccb20c);
+                            }
+
+                            foreach (Primitive primitiveObject in scene.primitives)
+                            {
+                                Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
+                                if (shadowIntersection.distance == 0) continue;
+
+                                if (shadowIntersection.distance < -0.1) {
+
+                                    lightBlocked = true;
+                                }
+
+                                
+                            }
+                        }
+
+                        if (lightBlocked)
+                        {
+                            screen.pixels[position] = color(closestIntersection.primitive.color);
+                            
+                        }
+                        else {
+                            //screen.pixels[position] = color(new Vector3(0, 0, 0));
+
+                        }
                     }
                 } 
             }
@@ -88,6 +140,21 @@ namespace INFOGR2023Template
                             float y = s.position.Z + s.radius * (float)Math.Sin(180 / (Math.PI * i / 360));
 
                             screen.Plot(tx(x), ty(y), color(s.color));
+                        }
+                        break;
+                }
+            }
+            foreach (var light in scene.lights)
+            {
+                switch (light)
+                {
+                    case Light l:
+                        for (int i = 0; i <= 1000; i++)
+                        {
+                            float x = l.position.X + 0.1f * (float)Math.Cos(180 / (Math.PI * i / 360));
+                            float y = l.position.Z + 0.1f * (float)Math.Sin(180 / (Math.PI * i / 360));
+
+                            screen.Plot(tx(x), ty(y), color(l.color));
                         }
                         break;
                 }
