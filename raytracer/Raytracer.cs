@@ -31,7 +31,7 @@ namespace INFOGR2023Template
 
             scene.lights.Add(new Light(new Vector3(5, 2, 3), 10, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(0, 255, 255)));
+            scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -110,7 +110,7 @@ namespace INFOGR2023Template
 
                         if (lightBlocked)
                         {
-                            screen.pixels[position] = color(new Vector3(25, 255, 255));                
+                            screen.pixels[position] = color(new Vector3(0, 0, 0));                
                         }
                         else {
                             screen.pixels[position] = color(closestIntersection.primitive.color);
