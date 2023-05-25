@@ -10,22 +10,27 @@ namespace INFOGR2023Template
     public class Primitive
     {
         public Vector3 color;
+        public string type;
 
         public Primitive(Vector3 color)
         {
             this.color = color;
         }
+
+        
     }
 
     public class Sphere : Primitive
     {
         public Vector3 position;
         public float radius;
+        
 
         public Sphere(Vector3 position, float radius, Vector3 color) : base(color)
         {
             this.position = position;
             this.radius = radius;
+            this.type = "sphere";
         }
     }
 
@@ -40,6 +45,7 @@ namespace INFOGR2023Template
             this.normal = normal;
             this.point = point;
             this.distance = distance;
+            this.type = "plane";
         }
     }
 }

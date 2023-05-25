@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace INFOGR2023Template
         public Primitive primitive;
         public Vector3 normal;
         public Ray ray;
+        public Vector3 position;
 
         public Intersection(Ray ray, Primitive primitive)
         {
@@ -46,6 +48,7 @@ namespace INFOGR2023Template
                 ray.t = t;
                 this.distance = t;
                 Vector3 intersection = ray.E + ray.D * this.distance;
+                this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
             }
 
@@ -65,6 +68,9 @@ namespace INFOGR2023Template
                 {
                     this.distance = t;
                     ray.t = t;
+
+                    Vector3 intersection = ray.E + ray.D * this.distance;
+                    this.position = intersection;
                 }
             }
         }
