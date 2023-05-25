@@ -10,7 +10,7 @@ namespace INFOGR2023Template
     public class Light
     {
         public Vector3 position;
-        public int intensity;
+        public float intensity;
         public Vector3 color;
 
         public Light(Vector3 p, int i, Vector3 c)

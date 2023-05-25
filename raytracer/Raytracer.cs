@@ -29,9 +29,9 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255)));
 
-            scene.lights.Add(new Light(new Vector3(5, 2, 3), 10, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(3, 2, 2), 4000, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
+            //scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -77,9 +77,10 @@ namespace INFOGR2023Template
                         }
 
                         Vector3 primaryIntersection = closestIntersection.ray.D * closestIntersection.distance;
-                        
+
                         //Lights
                         bool lightBlocked = false;
+                        Vector3 shadowColor = new Vector3(0, 0, 0);
                         foreach (Light light in scene.lights) {
 
                             Vector3 LightDirection = primaryIntersection - light.position;
@@ -89,35 +90,68 @@ namespace INFOGR2023Template
 
                             Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, maxShadowRayDistance);
 
-                           
-                            if (x % 20 == 0) {
-                                screen.Line(tx(primaryIntersection.X), ty(primaryIntersection.Z), tx(LightDirection.X * maxShadowRayDistance), ty(LightDirection.Z * maxShadowRayDistance), 0xccb20c);
-                            }
-
                             foreach (Primitive primitiveObject in scene.primitives)
                             {
                                 Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
                                 if (shadowIntersection.distance == 0) continue;
 
-                                if (shadowIntersection.distance < -0.1) {
+                                if (shadowIntersection.distance < -0.01) {
+                                    /*if (x % 20 == 0)
+                                    {
+                                        screen.Line(tx(primaryIntersection.X), ty(primaryIntersection.Z), tx(LightDirection.X * -maxShadowRayDistance), ty(LightDirection.Z * -maxShadowRayDistance), 0xccb20c);
+                                    }*/
 
+                                    //Light is blocked -> shadow
                                     lightBlocked = true;
                                 }
 
                                 
                             }
+                            shadowColor = CalculateDiffusion(primitive, light, primaryIntersection);
                         }
 
                         if (lightBlocked)
                         {
-                            screen.pixels[position] = color(new Vector3(0, 0, 0));                
+                            screen.pixels[position] = color(shadowColor);                
                         }
                         else {
-                            screen.pixels[position] = color(closestIntersection.primitive.color);
+                            screen.pixels[position] = color(shadowColor);
                         }
                     }
                 } 
             }
+        }
+
+        Vector3 CalculateDiffusion(Primitive primitive, Light light, Vector3 primaryIntersection) {
+            switch (primitive) {
+                case Sphere s: {
+                        float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
+
+                        Vector3 NfromCenterToIntersection = primaryIntersection - s.position;
+                        //screen.Line(tx(NfromCenterToIntersection.X), ty(NfromCenterToIntersection.Z), tx(s.position.X), ty(s.position.Z), 0xffffff);
+
+                        float angle = Vector3.CalculateAngle((light.position - primaryIntersection), NfromCenterToIntersection);
+
+                        Vector3 ReflectedLight = new Vector3(((light.color.X/255) * (s.color.X / 255))*1, ((light.color.Y / 255) * (s.color.Y / 255)) * 1, ((light.color.Z / 255) * (s.color.Z / 255)) * 1);
+
+                        //Debug.WriteLine((light.color, s.color, ReflectedLight));
+
+                        if (angle > 90) { 
+                            angle = 0;
+                        }
+
+
+                        Vector3 PixelColor = Vector3.ComponentMin(Lradiance * Math.Max(0, (float)Math.Cos(angle)) * ReflectedLight, new Vector3(255,255,255));
+
+                        return PixelColor;
+                        
+                    }
+                case Plane p: {
+                        return new Vector3(0, 0, 0);
+                    }
+            }
+            return new Vector3(0, 0, 0);
+
         }
 
         public void RenderDebug()

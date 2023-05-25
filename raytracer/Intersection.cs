@@ -31,25 +31,23 @@ namespace INFOGR2023Template
             }
         }
 
-        public void intersectWithSphere(Sphere s, Ray ray)
+        public void intersectWithSphere(Sphere sphere, Ray ray)
         {
-            // page 23 van slides 4 intro to raytracing
-            Vector3 A = ray.E;
-            Vector3 B = ray.D;
-            float t = ray.t;
-            Vector3 C = s.position;
-            float r2 = s.radius * s.radius;
+            Vector3 c = sphere.position - ray.E;
+            float t = Vector3.Dot(c, ray.D);
+            Vector3 q = c - t * ray.D;
+            float p2 = q.LengthSquared;
 
-            float a = Vector3.Dot(B, B);
-            float b = 2 * Vector3.Dot(B, C- A);
-            float c = Vector3.Dot(C - A, C - A) - r2;
-            float disc = (b * b) - (4.0f * a * c);
-            if (disc > 0)
+            if (p2 > (sphere.radius * sphere.radius)) return;
+            t -= (float)Math.Sqrt((sphere.radius * sphere.radius) - p2);
+
+            if ((t < ray.t) && (t > 0.001))
             {
-                this.distance = -(float)Math.Max((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
-                ray.t = (float)Math.Max((-b - Math.Sqrt(disc)) / (2 * a), (-b + Math.Sqrt(disc)) / (2 * a));
+                ray.t = t;
+                this.distance = t;
+                Vector3 intersection = ray.E + ray.D * this.distance;
+                this.normal = Vector3.Normalize(intersection - sphere.position);
             }
-
 
         }
 
