@@ -30,5 +30,14 @@ namespace INFOGR2023Template
             p2 = center - upDirection + right;
 
         }
+
+        public void updatePosition()
+        {
+            Vector3 right = Vector3.Cross(this.direction, this.upDirection);
+            Vector3 center = this.position + this.fov * this.direction;
+            this.p0 = center + this.upDirection + right;
+            this.p1 = center + this.upDirection - right;
+            this.p2 = center - this.upDirection + right;
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
 
 namespace INFOGR2023Template
@@ -14,6 +15,7 @@ namespace INFOGR2023Template
         private Camera camera;
         private float maxRayDistance;
         private Scene scene;
+        public KeyboardState keyboard;
 
         public float top = -1f;
         public float left = -5f;
@@ -31,13 +33,32 @@ namespace INFOGR2023Template
 
             scene.lights.Add(new Light(new Vector3(3, 2, 2), 4000, new Vector3(255, 255, 255)));
 
-            //scene.primitives.Add(new Plane(new Vector3(0, -1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
 
         public void Render()
         {
+            if (keyboard.IsKeyDown(Keys.W))
+            {
+                camera.position.Z += 0.5f;
+            }
+            else if (keyboard.IsKeyDown(Keys.S))
+            {
+                camera.position.Z -= 0.5f;
+            }
+            else if (keyboard.IsKeyDown(Keys.D))
+            {
+                camera.position.X += 0.5f;
+            }
+            else if (keyboard.IsKeyDown(Keys.A))
+            {
+                camera.position.X -= 0.5f;
+            }
+
+            camera.updatePosition();
+
             for (int x = 0;  x < screen.width/2; x++)
             {
                 for (int y = 0; y < screen.height; y++)
@@ -59,7 +80,7 @@ namespace INFOGR2023Template
                     
                     if (x % 20 == 0 && y == 0)
                     {
-                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(Direction.X * maxRayDistance), ty(Direction.Z * maxRayDistance), 0x473f0a);
+                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(camera.position.X + Direction.X * maxRayDistance), ty(camera.position.Z + Direction.Z * maxRayDistance), 0x473f0a);
                     }
 
                     Intersection? closestIntersection = null;
@@ -90,12 +111,18 @@ namespace INFOGR2023Template
 
                             Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, maxShadowRayDistance);
 
+                            Intersection? closestShadow = null;
                             foreach (Primitive primitiveObject in scene.primitives)
                             {
                                 Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
                                 if (shadowIntersection.distance == 0) continue;
 
-                                if (shadowIntersection.distance < -0.01) {
+                                if (closestShadow is null || closestShadow.distance > shadowIntersection.distance)
+                                {
+                                    closestShadow = shadowIntersection;
+                                }
+
+                                if (closestShadow.distance < -0.01) {
                                     /*if (x % 20 == 0)
                                     {
                                         screen.Line(tx(primaryIntersection.X), ty(primaryIntersection.Z), tx(LightDirection.X * -maxShadowRayDistance), ty(LightDirection.Z * -maxShadowRayDistance), 0xccb20c);
@@ -104,8 +131,6 @@ namespace INFOGR2023Template
                                     //Light is blocked -> shadow
                                     lightBlocked = true;
                                 }
-
-                                
                             }
                             shadowColor = CalculateDiffusion(primitive, light, primaryIntersection);
                         }
@@ -124,6 +149,24 @@ namespace INFOGR2023Template
 
         Vector3 CalculateDiffusion(Primitive primitive, Light light, Vector3 primaryIntersection) {
             switch (primitive) {
+                case Plane p: {
+                        float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
+
+                        Vector3 NfromCenterToIntersection = p.normal;
+
+                        float angle = Vector3.CalculateAngle((light.position - primaryIntersection), NfromCenterToIntersection);
+
+                        Vector3 ReflectedLight = new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 1, ((light.color.Y / 255) * (p.color.Y / 255)) * 1, ((light.color.Z / 255) * (p.color.Z / 255)) * 1);
+                        
+                        if (angle > 90)
+                        {
+                            angle = 0;
+                        }
+
+                        Vector3 PixelColor = Vector3.ComponentMin(Lradiance * Math.Max(0, (float)Math.Cos(angle)) * ReflectedLight, new Vector3(255, 255, 255));
+
+                        return PixelColor;
+                    }
                 case Sphere s: {
                         float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
 
@@ -145,9 +188,6 @@ namespace INFOGR2023Template
 
                         return PixelColor;
                         
-                    }
-                case Plane p: {
-                        return new Vector3(0, 0, 0);
                     }
             }
             return new Vector3(0, 0, 0);

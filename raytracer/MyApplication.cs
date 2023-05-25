@@ -1,3 +1,5 @@
+using OpenTK.Windowing.GraphicsLibraryFramework;
+
 namespace INFOGR2023Template
 {
     public class MyApplication
@@ -5,6 +7,7 @@ namespace INFOGR2023Template
         // member variables
         public Surface screen;
         public Raytracer raytracer;
+        public KeyboardState keyboard;
         // constructor
         public MyApplication(Surface screen)
         {
@@ -19,6 +22,7 @@ namespace INFOGR2023Template
         // tick: renders one frame
         public void Tick()
         {
+            raytracer.keyboard = keyboard;
             screen.Clear(0);
             raytracer.RenderDebug();
             raytracer.Render();
