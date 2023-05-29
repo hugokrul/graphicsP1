@@ -78,6 +78,7 @@ namespace INFOGR2023Template
             Surface screen = new(ClientSize.X, ClientSize.Y);
             app = new MyApplication(screen);
             screenID = app.screen.GenTexture();
+            MouseMove += app.MouseMove;
             if (allowPrehistoricOpenGL)
             {
                 GL.Enable(EnableCap.Texture2D);
@@ -215,7 +216,7 @@ namespace INFOGR2023Template
         {
             // entry point
             using OpenTKApp app = new();
-            app.RenderFrequency = 30.0;
+            app.RenderFrequency = 0.0;
             app.Run();
         }
     }

@@ -6,20 +6,26 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
 
 namespace INFOGR2023Template
 {
     public class Raytracer
     {
         private Surface screen;
-        private Camera camera;
+        public Camera camera;
         private float maxRayDistance;
         private Scene scene;
         public KeyboardState keyboard;
+        public MouseMoveEventArgs mouse;
 
         public float top = -1f;
         public float left = -5f;
         public float scale = 10f;
+        private float Xamount = 1f;
+        private float Yamount = 1f;
+        private float Zamount = 1f;
 
 
         public Raytracer(MyApplication app)
@@ -31,41 +37,55 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255)));
 
-            scene.lights.Add(new Light(new Vector3(3, 2, 2), 4000, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(0, 2, 5), 4000, new Vector3(255, 255, 255)));
 
             scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
-            camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
+            //camera = new Camera(new Vector3(0, 0, 0), new Vector3((float)Math.Cos((this.Xamount*Math.PI)/2), 0, (float)Math.Sin((this.Zamount*Math.PI)/2)), new Vector3(0, 1, 0), 1f);
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f); /*(to front)*/
+            // camera = new Camera(new Vector3(0, 3, 5), new Vector3(0, -1, 0), new Vector3(0, 0, 1), 1f); /*(down)*/
+            // camera = new Camera(new Vector3(0, 3, 5), new Vector3(1, 0, 0), new Vector3(0, 1, 0), 1f); /*(right)*/
+            // camera = new Camera(new Vector3(0, 3, 5), new Vector3(-1, 0, 0), new Vector3(0, 1, 0), 1f); /*(left)*/
             maxRayDistance = 10f;
         }
 
         public void Render()
         {
-            if (keyboard.IsKeyDown(Keys.W))
+            if (keyboard.IsKeyDown(Keys.E))
             {
-                camera.position.Z += 0.5f;
+                camera.position = new Vector3(0, 0, 0);
+                camera.direction = new Vector3(0, 0, 1);
+                camera.upDirection = new Vector3(0, 1, 0);
             }
-            else if (keyboard.IsKeyDown(Keys.S))
+            while (keyboard.IsKeyDown(Keys.W))
             {
-                camera.position.Z -= 0.5f;
+                camera.position += camera.direction * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.D))
+            while (keyboard.IsKeyDown(Keys.S))
             {
-                camera.position.X += 0.5f;
+                camera.position -= camera.direction * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.A))
+            while (keyboard.IsKeyDown(Keys.D))
             {
-                camera.position.X -= 0.5f;
+                camera.position -= camera.right * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.Up))
+            while (keyboard.IsKeyDown(Keys.A))
             {
-                camera.position.Y += 0.5f;
+                camera.position += camera.right * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.Down))
+            while (keyboard.IsKeyDown(Keys.Space))
             {
-                camera.position.Y -= 0.5f;
+                camera.position.Y += 0.1f;
+                break;
             }
-
-            camera.updatePosition();
+            while (keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift))
+            {
+                camera.position.Y -= 0.1f;
+                break;
+            }
 
             for (int x = 0;  x < screen.width/2; x++)
             {
@@ -127,10 +147,10 @@ namespace INFOGR2023Template
                             foreach (Primitive primitiveObject in scene.primitives)
                             {
                                 Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
-                                if (x % 20 == 0 && primitive.type == "sphere")
-                                {
-                                    screen.Line(tx(shadowIntersection.position.X), ty(shadowIntersection.position.Z), tx(LightDirection.X * -maxShadowRayDistance), ty(LightDirection.Z * -maxShadowRayDistance), 0xccb20c);
-                                }
+                                //if (x % 20 == 0 && primitive.type == "sphere")
+                                //{
+                                //    screen.Line(tx(shadowIntersection.position.X), ty(shadowIntersection.position.Z), tx(LightDirection.X * -maxShadowRayDistance), ty(LightDirection.Z * -maxShadowRayDistance), 0xccb20c);
+                                //}
                                 if (shadowIntersection.distance < -0.01) {
                                     
 
@@ -162,7 +182,8 @@ namespace INFOGR2023Template
 
         Vector3 CalculateDiffusion(Primitive primitive, Light light, Vector3 primaryIntersection) {
             switch (primitive) {
-                case Plane p: {
+                case Plane p:
+                    {
                         float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
                         
                         Vector3 Normal = p.normal;
@@ -170,7 +191,7 @@ namespace INFOGR2023Template
                         float angle = Vector3.CalculateAngle((light.position - primaryIntersection), Normal);
 
                         Vector3 ReflectedLight = new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 1, ((light.color.Y / 255) * (p.color.Y / 255)) * 1, ((light.color.Z / 255) * (p.color.Z / 255)) * 1);
-                        
+
                         if (angle > 90)
                         {
                             angle = 0;
@@ -258,6 +279,13 @@ namespace INFOGR2023Template
             x -= left;
             x *= Math.Min(screen.width, screen.height) / scale;
             return (int)x;
+        }
+
+        public float returnX(int x)
+        {
+            x += (int)left;
+            x /= (int)Math.Min(screen.width, screen.height) / (int)scale;
+            return (float)x;
         }
 
         public int ty(float y)
