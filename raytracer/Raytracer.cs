@@ -37,7 +37,7 @@ namespace INFOGR2023Template
             screen = app.screen;
             scene = new Scene();
             scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, false));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(255, 255, 255), 3, true));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, true));
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, false));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, false));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 0), 1f, new Vector3(100, 255, 100), 1, false));
@@ -114,7 +114,7 @@ namespace INFOGR2023Template
                     }
 
                     
-                        Vector3 pixelColor = Trace(ray);
+                        Vector3 pixelColor = Trace(ray, 0);
                         screen.pixels[position] = color(pixelColor);
 
 
@@ -123,9 +123,10 @@ namespace INFOGR2023Template
             
         }
 
-        Vector3 Trace(Ray ray) {
+        Vector3 Trace(Ray ray, int bounce) {
             Vector3 PixelColor = new Vector3(0, 0, 0); //black
 
+            if(bounce < 1000) { //maxBounces
         (Intersection closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
             
             if (closestIntersection != null) {
@@ -133,47 +134,50 @@ namespace INFOGR2023Template
                 Vector3 NormalVector = closestIntersection.normal;
 
                 if (primitive.pureSpecular) {
-                    Vector3 materialColor = primitive.color;
+                    Vector3 materialColor = CalculateShading(primaryIntersection, primitive);
                     Vector3 CameraVector = primaryIntersection - camera.position;
                     Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
                     Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
 
-                    PixelColor = new Vector3(materialColor.X / 255, materialColor.Y / 255, materialColor.Z / 255) * Trace(reflectedRay);
+                    PixelColor = materialColor +  Trace(reflectedRay, bounce + 1);
                 } else {
                     PixelColor = CalculateShading(primaryIntersection, primitive);
                     PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
                 }
                 return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255));
             }
+            }
             return new Vector3(0);
 
         }
-    (Intersection, Primitive) CalculateClosestIntersection(Ray ray) {
-        Intersection? closestIntersection = null;
-            Primitive? closestPrimitve = null;
-        foreach (Primitive primitive in scene.primitives)
-        {
-            Intersection intersection = new Intersection(ray, primitive);
-            // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
-            // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
-            // screen.pixels[position] = die kleur
-            if (intersection.distance == 0) continue;
-
-            bool intersectedWithOtherObject = false;
-
-            if (closestIntersection is null || closestIntersection.distance > intersection.distance)
+    (Intersection, Primitive) CalculateClosestIntersection(Ray ray)
             {
-                closestIntersection = intersection;
-                intersectedWithOtherObject = true;
-            }
-                closestPrimitve = primitive;
-
-
-                if (intersectedWithOtherObject)
+                Intersection? closestIntersection = null;
+                Primitive? closestPrimitve = null;
+                foreach (Primitive primitive in scene.primitives)
                 {
-                    break;
+                    Intersection intersection = new Intersection(ray, primitive);
+                    // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
+                    // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
+                    // screen.pixels[position] = die kleur
+                    if (intersection.distance == 0) continue;
+
+                    bool intersectedWithOtherObject = false;
+
+                    if (closestIntersection is null || closestIntersection.distance > intersection.distance)
+                    {
+                        closestIntersection = intersection;
+                        intersectedWithOtherObject = true;
+                    }
+                    closestPrimitve = primitive;
+
+
+                    if (intersectedWithOtherObject)
+                    {
+                        break;
+                    }
                 }
-            }
+            
         return (closestIntersection, closestPrimitve);
         }
 
