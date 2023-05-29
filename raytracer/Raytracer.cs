@@ -6,20 +6,26 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Common.Input;
 
 namespace INFOGR2023Template
 {
     public class Raytracer
     {
         private Surface screen;
-        private Camera camera;
+        public Camera camera;
         private float maxRayDistance;
         private Scene scene;
         public KeyboardState keyboard;
+        public MouseMoveEventArgs mouse;
 
         public float top = -1f;
         public float left = -5f;
         public float scale = 10f;
+        private float Xamount = 1f;
+        private float Yamount = 1f;
+        private float Zamount = 1f;
 
         
 
@@ -42,32 +48,42 @@ namespace INFOGR2023Template
 
         public void Render()
         {
-            if (keyboard.IsKeyDown(Keys.W))
+            if (keyboard.IsKeyDown(Keys.E))
             {
-                camera.position.Z += 0.5f;
+                camera.position = new Vector3(0, 0, 0);
+                camera.direction = new Vector3(0, 0, 1);
+                camera.upDirection = new Vector3(0, 1, 0);
             }
-            else if (keyboard.IsKeyDown(Keys.S))
+            while (keyboard.IsKeyDown(Keys.W))
             {
-                camera.position.Z -= 0.5f;
+                camera.position += camera.direction * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.D))
+            while (keyboard.IsKeyDown(Keys.S))
             {
-                camera.position.X += 0.5f;
+                camera.position -= camera.direction * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.A))
+            while (keyboard.IsKeyDown(Keys.D))
             {
-                camera.position.X -= 0.5f;
+                camera.position -= camera.right * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.Up))
+            while (keyboard.IsKeyDown(Keys.A))
             {
-                camera.position.Y += 0.5f;
+                camera.position += camera.right * 0.1f;
+                break;
             }
-            else if (keyboard.IsKeyDown(Keys.Down))
+            while (keyboard.IsKeyDown(Keys.Space))
             {
-                camera.position.Y -= 0.5f;
+                camera.position.Y += 0.1f;
+                break;
             }
-
-            camera.updatePosition();
+            while (keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift))
+            {
+                camera.position.Y -= 0.1f;
+                break;
+            }
 
             for (int x = 0;  x < screen.width/2; x++)
             {
@@ -257,6 +273,13 @@ namespace INFOGR2023Template
             x -= left;
             x *= Math.Min(screen.width, screen.height) / scale;
             return (int)x;
+        }
+
+        public float returnX(int x)
+        {
+            x += (int)left;
+            x /= (int)Math.Min(screen.width, screen.height) / (int)scale;
+            return (float)x;
         }
 
         public int ty(float y)

@@ -46,7 +46,7 @@ namespace INFOGR2023Template
             } ;
             t -= (float)Math.Sqrt((sphere.radius * sphere.radius) - p2);
 
-            if ((t < ray.t) && (t > 0.001))
+            if ((t < ray.t) && (t > 0))
             {
                 ray.t = t;
                 this.distance = t;
@@ -68,7 +68,7 @@ namespace INFOGR2023Template
                 var difference = p.point - ray.E;
                 var t = Vector3.Dot(difference, p.normal) / denominator;
 
-                if (t > 0.0001f)
+                if (t > 0)
                 {
                     this.distance = t;
                     ray.t = t;
