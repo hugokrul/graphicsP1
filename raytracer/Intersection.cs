@@ -75,6 +75,7 @@ namespace INFOGR2023Template
 
                     Vector3 intersection = ray.E + ray.D * this.distance;
                     this.position = intersection;
+                    this.normal = p.normal;
                 }
             }
         }

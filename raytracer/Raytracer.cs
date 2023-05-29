@@ -8,6 +8,8 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Common.Input;
+using static System.Formats.Asn1.AsnWriter;
+using Microsoft.VisualBasic;
 
 namespace INFOGR2023Template
 {
@@ -34,15 +36,16 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0), 3));
-            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, false));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(255, 255, 255), 3, true));
+            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, false));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, false));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 0), 1f, new Vector3(100, 255, 100), 1, false));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0, false));
             camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -110,40 +113,75 @@ namespace INFOGR2023Template
                         screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(camera.position.X + Direction.X * maxRayDistance), ty(camera.position.Z + Direction.Z * maxRayDistance), 0x473f0a);
                     }
 
-                    Intersection? closestIntersection = null;
-                    foreach (Primitive primitive in scene.primitives)
-                    {
-                        Intersection intersection = new Intersection(ray, primitive);
-                        // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
-                        // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
-                        // screen.pixels[position] = die kleur
-                        if (intersection.distance == 0) continue;
-
-                        bool intersectedWithOtherObject = false;
-
-                        if (closestIntersection is null || closestIntersection.distance > intersection.distance)
-                        {
-                            closestIntersection = intersection;
-                            intersectedWithOtherObject = true;
-                        }
-
-                        Vector3 primaryIntersection = intersection.position;
-
-                        Vector3 pixelColor = CalculateTotalPixelColor(primitive, scene.lights, primaryIntersection);
+                    
+                        Vector3 pixelColor = Trace(ray);
                         screen.pixels[position] = color(pixelColor);
 
-                        if (intersectedWithOtherObject) {
-                            break;
-                        }
+
                     }
                 } 
-            }
+            
         }
 
-        Vector3 CalculateTotalPixelColor(Primitive primitive, List<Light> lights, Vector3 primaryIntersection) {
+        Vector3 Trace(Ray ray) {
             Vector3 PixelColor = new Vector3(0, 0, 0); //black
 
-            foreach (Light light in lights)
+        (Intersection closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
+            
+            if (closestIntersection != null) {
+                Vector3 primaryIntersection = closestIntersection.position;
+                Vector3 NormalVector = closestIntersection.normal;
+
+                if (primitive.pureSpecular) {
+                    Vector3 materialColor = primitive.color;
+                    Vector3 CameraVector = primaryIntersection - camera.position;
+                    Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
+                    Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
+
+                    PixelColor = new Vector3(materialColor.X / 255, materialColor.Y / 255, materialColor.Z / 255) * Trace(reflectedRay);
+                } else {
+                    PixelColor = CalculateShading(primaryIntersection, primitive);
+                    PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
+                }
+                return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255));
+            }
+            return new Vector3(0);
+
+        }
+    (Intersection, Primitive) CalculateClosestIntersection(Ray ray) {
+        Intersection? closestIntersection = null;
+            Primitive? closestPrimitve = null;
+        foreach (Primitive primitive in scene.primitives)
+        {
+            Intersection intersection = new Intersection(ray, primitive);
+            // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
+            // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
+            // screen.pixels[position] = die kleur
+            if (intersection.distance == 0) continue;
+
+            bool intersectedWithOtherObject = false;
+
+            if (closestIntersection is null || closestIntersection.distance > intersection.distance)
+            {
+                closestIntersection = intersection;
+                intersectedWithOtherObject = true;
+            }
+                closestPrimitve = primitive;
+
+
+                if (intersectedWithOtherObject)
+                {
+                    break;
+                }
+            }
+        return (closestIntersection, closestPrimitve);
+        }
+
+        
+
+        Vector3 CalculateShading(Vector3 primaryIntersection, Primitive primitive) {
+            Vector3 PixelColor = new Vector3(0,0,0);
+            foreach (Light light in scene.lights)
             {
                 //if the shadow ray doesn't hit anything calculate the pixel color
                 Vector3 LightDirection = light.position - primaryIntersection;
@@ -164,7 +202,6 @@ namespace INFOGR2023Template
 
                 if (!shadowRayHit)
                 {
-
                     float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
                     Vector3 CameraDirection = primaryIntersection - camera.position;
                     Vector3 Normal = new Vector3(0, 0, 0);
@@ -195,24 +232,22 @@ namespace INFOGR2023Template
                     PixelColor += CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
                 }
             }
-
-            PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
-
-            return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255)) ;
-
-
+            return PixelColor;
         }
+
         Vector3 CalculateReflectedColor(Light light, Primitive p)
         {
             return new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 255, ((light.color.Y / 255) * (p.color.Y / 255)) * 255, ((light.color.Z / 255) * (p.color.Z / 255)) * 255);
         }
 
-        Vector3 CalculatePixelColor(float Lradiance, float diffuseAngle, float glossyAngle, Vector3 ReflectedColor, Vector3 GlossyColor, float glossiness) {
+        Vector3 CalculatePixelColor(float Lradiance, float diffuseAngle, float glossyAngle, Vector3 ReflectedColor, Vector3 GlossyColor, float glossiness)
+        {
             Vector3 DiffuseShading = (Math.Max(0, diffuseAngle)) * ReflectedColor;
             Vector3 SpecularShading = (float)Math.Pow(Math.Max(0, glossyAngle), glossiness) * GlossyColor;
 
             return Lradiance * (DiffuseShading + SpecularShading);
         }
+
 
         public void RenderDebug()
         {
