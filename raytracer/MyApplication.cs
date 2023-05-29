@@ -36,7 +36,7 @@ namespace INFOGR2023Template
 
         public void MouseMove(MouseMoveEventArgs e)
         {
-            raytracer.camera.updateMouse(e.Position);
+            //raytracer.camera.updateMouse(e.Position);
         }
     }
 }
