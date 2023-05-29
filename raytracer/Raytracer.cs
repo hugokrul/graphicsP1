@@ -21,19 +21,21 @@ namespace INFOGR2023Template
         public float left = -5f;
         public float scale = 10f;
 
+        
+
 
         public Raytracer(MyApplication app)
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0)));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0)));
-            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255)));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255)));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(0, 255, 0), 3));
+            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1));
 
-            scene.lights.Add(new Light(new Vector3(3, 2, 2), 4000, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(4, 5, 4), 5, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100)));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0));
             camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -127,13 +129,7 @@ namespace INFOGR2023Template
                             foreach (Primitive primitiveObject in scene.primitives)
                             {
                                 Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
-                                if (x % 20 == 0 && primitive.type == "sphere")
-                                {
-                                    screen.Line(tx(shadowIntersection.position.X), ty(shadowIntersection.position.Z), tx(LightDirection.X * -maxShadowRayDistance), ty(LightDirection.Z * -maxShadowRayDistance), 0xccb20c);
-                                }
-                                if (shadowIntersection.distance < -0.01) {
-                                    
-
+                                if (shadowIntersection.distance > 0) {
                                     //Light is blocked -> shadow
                                     lightBlocked = true;
                                 }
@@ -161,48 +157,51 @@ namespace INFOGR2023Template
         }
 
         Vector3 CalculateDiffusion(Primitive primitive, Light light, Vector3 primaryIntersection) {
+            float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
+            Vector3 LightDirection = (light.position - primaryIntersection);
+            Vector3 CameraDirection = primaryIntersection - camera.position;
+            Vector3 Normal = new Vector3(0,0,0);
+            Vector3 ReflectedColor = new Vector3(0, 0, 0);
+            float glossiness = primitive.glossiness;
+
             switch (primitive) {
-                case Plane p: {
-                        float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
-                        
-                        Vector3 Normal = p.normal;
-
-                        float angle = Vector3.CalculateAngle((light.position - primaryIntersection), Normal);
-
-                        Vector3 ReflectedLight = new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 1, ((light.color.Y / 255) * (p.color.Y / 255)) * 1, ((light.color.Z / 255) * (p.color.Z / 255)) * 1);
-                        
-                        if (angle > 90)
-                        {
-                            angle = 0;
-                        }
-
-                        //Debug.WriteLine(angle);
-
-                        Vector3 PixelColor = Vector3.ComponentMin(Lradiance * Math.Max(0, (float)Math.Cos(angle)) * ReflectedLight, new Vector3(255, 255, 255));
-
-                        return PixelColor;
-                    }
                 case Sphere s: {
-                        float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
+                        Normal = primaryIntersection - s.position;
+                        ReflectedColor = CalculateReflectedColor(light, s);
 
-                        Vector3 NfromCenterToIntersection = primaryIntersection - s.position;
-
-                        float angle = Vector3.CalculateAngle((light.position - primaryIntersection), NfromCenterToIntersection);
-
-                        Vector3 ReflectedLight = new Vector3(((light.color.X/255) * (s.color.X / 255))*1, ((light.color.Y / 255) * (s.color.Y / 255)) * 1, ((light.color.Z / 255) * (s.color.Z / 255)) * 1);
-
-                        if (angle > 90) { 
-                            angle = 0;
-                        }
-
-                        Vector3 PixelColor = Vector3.ComponentMin(Lradiance * Math.Max(0, (float)Math.Cos(angle)) * ReflectedLight, new Vector3(255,255,255));
-
-                        return PixelColor;
-                        
+                        break;
+                    }
+                case Plane p: {
+                        Normal = p.normal;
+                        ReflectedColor = CalculateReflectedColor(light, p);
+                        break;
                     }
             }
-            return new Vector3(0, 0, 0);
+            Vector3 ReflectedVector = LightDirection - 2 * (Vector3.Dot(LightDirection, Normal)) * Normal;
 
+            if (primitive.type == "sphere" && primaryIntersection.Y > 0.95 && primaryIntersection.Y < 1.05) {
+                screen.Line(tx(primaryIntersection.X), ty(primaryIntersection.Z), tx(ReflectedVector.X), ty(ReflectedVector.Z), 0xffffff);
+            }
+
+            float diffuseAngle = Vector3.Dot(Normal, LightDirection);
+            float glossyAngle = Vector3.Dot(CameraDirection, ReflectedVector);
+
+            Vector3 PixelColor = CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
+
+            return PixelColor;
+
+
+        }
+        Vector3 CalculateReflectedColor(Light light, Primitive p)
+        {
+            return new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 255, ((light.color.Y / 255) * (p.color.Y / 255)) * 255, ((light.color.Z / 255) * (p.color.Z / 255)) * 255);
+        }
+
+        Vector3 CalculatePixelColor(float Lradiance, float diffuseAngle, float glossyAngle, Vector3 ReflectedColor, Vector3 GlossyColor, float glossiness) {
+            Vector3 DiffuseShading = (Math.Max(0, diffuseAngle)) * ReflectedColor;
+            Vector3 SpecularShading = (float)Math.Pow(Math.Max(0, glossyAngle), glossiness) * GlossyColor;
+
+            return Vector3.ComponentMin(Lradiance * (DiffuseShading +  SpecularShading), new Vector3(255, 255, 255));
         }
 
         public void RenderDebug()

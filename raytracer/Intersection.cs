@@ -40,7 +40,10 @@ namespace INFOGR2023Template
             Vector3 q = c - t * ray.D;
             float p2 = q.LengthSquared;
 
-            if (p2 > (sphere.radius * sphere.radius)) return;
+            if (p2 > (sphere.radius * sphere.radius)) {
+               //No intersection
+                return;
+            } ;
             t -= (float)Math.Sqrt((sphere.radius * sphere.radius) - p2);
 
             if ((t < ray.t) && (t > 0.001))
@@ -51,6 +54,7 @@ namespace INFOGR2023Template
                 this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
             }
+       
 
         }
 
