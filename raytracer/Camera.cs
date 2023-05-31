@@ -17,7 +17,7 @@ namespace INFOGR2023Template
         public Vector3 p1;
         public Vector3 p2;
         public Vector3 right;
-        public Vector2 oldMousePosition;
+        private float rotationSpeed = 0.03f;
         
 
         public Camera(Vector3 position, Vector3 direction, Vector3 upDirection, float fov)
@@ -31,7 +31,6 @@ namespace INFOGR2023Template
             p0 = center + upDirection + right;
             p1 = center + upDirection - right;
             p2 = center - upDirection + right;
-
         }
 
         public void updatePosition()
@@ -43,24 +42,26 @@ namespace INFOGR2023Template
             this.p2 = center - this.upDirection + right;
         }
 
-        public void updateMouse(Vector2 newMousePosition)
+        public void rotateHorizontal(float rotateX)
         {
-            Vector2 mouseDelta = newMousePosition - this.oldMousePosition;
-            if (mouseDelta.Length > 50.0f)
-            {
-                this.oldMousePosition = newMousePosition;
-                return;
-            }
+            Vector3 toRotateAround = this.upDirection.Y > 0 ? new Vector3(0, 1, 0) : new Vector3(0, -1, 0);
+            Quaternion rotateHorizontal = new Quaternion(new Vector3(0, 1, 0) * rotationSpeed * rotateX);
+            this.direction = Vector3.Normalize(Vector3.Transform(this.direction, rotateHorizontal));
+            this.upDirection = Vector3.Normalize(Vector3.Transform(this.upDirection, rotateHorizontal));
+        }
 
-            float rotationSpeed = 0.03f;
+        public void rotateVertical(float rotateY)
+        {
+            Quaternion rotateVertical = new Quaternion(this.right * rotationSpeed * rotateY);
+            this.direction = Vector3.Normalize(Vector3.Transform(this.direction, rotateVertical));
+            this.upDirection = Vector3.Normalize(Vector3.Transform(this.upDirection, rotateVertical));
+        }
 
-            // Vector3 toRotateAround = Vector3.Cross(this.direction, this.upDirection) * -1;
-            Quaternion rotateHorizontal = new Quaternion(this.upDirection * rotationSpeed * mouseDelta.X);
-            Quaternion rotateVertical = new Quaternion(new Vector3(1, 0, 0) * rotationSpeed * mouseDelta.Y);
-            this.direction = Vector3.Normalize(Vector3.Transform(this.direction, rotateHorizontal * rotateVertical));
-            this.upDirection = Vector3.Normalize(Vector3.Transform(this.upDirection, new Quaternion(new Vector3(1, 0, 0) * rotationSpeed * mouseDelta.Y)));
-
-            this.oldMousePosition = newMousePosition;
+        public void roll(float roll)
+        {
+            Quaternion rollPitch = new Quaternion(this.direction * rotationSpeed * roll);
+            this.direction = Vector3.Normalize(Vector3.Transform(this.direction, rollPitch));
+            this.upDirection = Vector3.Normalize(Vector3.Transform(this.upDirection, rollPitch));
         }
     }
 }

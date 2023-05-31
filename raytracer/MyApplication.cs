@@ -30,13 +30,8 @@ namespace INFOGR2023Template
             raytracer.Render();
 
             raytracer.camera.updatePosition();
-            //Console.WriteLine($"{raytracer.camera.direction.ToString()}, {raytracer.camera.upDirection}");
+            //Console.WriteLine($"{raytracer.camera.direction}, {raytracer.camera.upDirection}");
             screen.Line(screen.width / 2, 0, screen.width / 2, screen.height, 0xffffff);
-        }
-
-        public void MouseMove(MouseMoveEventArgs e)
-        {
-            //raytracer.camera.updateMouse(e.Position);
         }
     }
 }

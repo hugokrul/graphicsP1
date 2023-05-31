@@ -20,14 +20,13 @@ namespace INFOGR2023Template
         private float maxRayDistance;
         private Scene scene;
         public KeyboardState keyboard;
-        public MouseMoveEventArgs mouse;
 
         public float top = -1f;
         public float left = -5f;
         public float scale = 10f;
-        private float Xamount = 1f;
-        private float Yamount = 1f;
-        private float Zamount = 1f;
+        private float rotationSpeed = 5f;
+        private int debugX;
+        private int debugY;
 
         public float ambientLightingAmount = 0.1f;
 
@@ -36,11 +35,11 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0f));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0.7f));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0.7f));
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 0), 1f, new Vector3(100, 255, 100), 1, 0));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, -1.5f), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
@@ -52,30 +51,31 @@ namespace INFOGR2023Template
 
         public void Render()
         {
-            if (keyboard.IsKeyDown(Keys.E))
+            // Hier een switch case van maken!!!!
+            if (keyboard.IsKeyDown(Keys.T))
             {
-                camera.position = new Vector3(0, 0, 0);
+                camera.position = new Vector3(0, 0, 1);
                 camera.direction = new Vector3(0, 0, 1);
                 camera.upDirection = new Vector3(0, 1, 0);
             }
             while (keyboard.IsKeyDown(Keys.W))
             {
-                camera.position += camera.direction * 0.1f;
+                camera.position += new Vector3(camera.direction.X, 0, camera.direction.Z) * 0.1f;
                 break;
             }
             while (keyboard.IsKeyDown(Keys.S))
             {
-                camera.position -= camera.direction * 0.1f;
+                camera.position -= new Vector3(camera.direction.X, 0, camera.direction.Z) * 0.1f;
                 break;
             }
             while (keyboard.IsKeyDown(Keys.D))
             {
-                camera.position -= camera.right * 0.1f;
+                camera.position -= new Vector3(camera.right.X, 0, camera.right.Z) * 0.1f;
                 break;
             }
             while (keyboard.IsKeyDown(Keys.A))
             {
-                camera.position += camera.right * 0.1f;
+                camera.position += new Vector3(camera.right.X, 0, camera.right.Z) * 0.1f;
                 break;
             }
             while (keyboard.IsKeyDown(Keys.Space))
@@ -88,87 +88,114 @@ namespace INFOGR2023Template
                 camera.position.Y -= 0.1f;
                 break;
             }
-
-            for (int x = 0;  x < screen.width/2; x++)
+            if (keyboard.IsKeyDown(Keys.Right))
             {
-                for (int y = 0; y < screen.height; y++)
+                camera.rotateHorizontal(rotationSpeed);
+            }
+            else if (keyboard.IsKeyDown(Keys.Left))
+            {
+                camera.rotateHorizontal(-rotationSpeed);
+            }
+            else if (keyboard.IsKeyDown(Keys.Up))
+            {
+                camera.rotateVertical(rotationSpeed);
+            }
+            else if (keyboard.IsKeyDown(Keys.Down))
+            {
+                camera.rotateVertical(-rotationSpeed);
+            }
+            else if (keyboard.IsKeyDown(Keys.Q))
+            {
+                camera.roll(rotationSpeed);
+            }
+            else if (keyboard.IsKeyDown(Keys.E))
+            {
+                camera.roll(-rotationSpeed);
+            }
+
+            for (debugX = 0;  debugX < screen.width/2; debugX++)
+            {
+                for (debugY = 0; debugY < screen.height; debugY++)
                 {
-                    int position = x + y * screen.width + screen.width / 2;
+                    int position = debugX + debugY * screen.width + screen.width / 2;
 
                     Vector3 u = camera.p1 - camera.p0;
                     Vector3 v = camera.p2 - camera.p0;
 
-                    float a = (float)x / (float)(screen.width/2);
-                    float b = (float)y / (float)(screen.height);
+                    float a = (float)debugX / (float)(screen.width/2);
+                    float b = (float)debugY / (float)(screen.height);
 
                     Vector3 point = camera.p0 + a * u + b * v;
                     Vector3 Direction = Vector3.Normalize(point - camera.position);
 
                     Ray ray = new Ray(camera.position, Direction, maxRayDistance);
 
+                    Vector3 pixelColor = Trace(ray, 0);
+                    screen.pixels[position] = color(pixelColor);
+
                     //Debug rays
-                    
-                    if (x % 20 == 0 && y == 0)
+                    if (debugX % 20 == 0 && ray.D.Y <= 0.01 && ray.D.Y >= -0.01 && ray.t <= maxRayDistance)
                     {
-                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(camera.position.X + Direction.X * maxRayDistance), ty(camera.position.Z + Direction.Z * maxRayDistance), 0x473f0a);
+                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(camera.position.X + ray.D.X * ray.t), ty(camera.position.Z + ray.D.Z * ray.t), 0x473f0a);
                     }
-
-                    
-                        Vector3 pixelColor = Trace(ray, 0);
-                        screen.pixels[position] = color(pixelColor);
-
-
-                    }
-                } 
-            
+                }
+            } 
         }
 
         Vector3 Trace(Ray ray, int bounce) {
             Vector3 PixelColor = new Vector3(0, 0, 0); //black
 
             if(bounce < 1000) { //maxBounces
-        (Intersection closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
+                (Intersection closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
             
-            if (closestIntersection != null) {
-                Vector3 primaryIntersection = closestIntersection.position;
-                Vector3 NormalVector = closestIntersection.normal;
+                if (closestIntersection != null) {
+                    Vector3 primaryIntersection = closestIntersection.position;
+                    Vector3 NormalVector = closestIntersection.normal;
 
-                if (primitive.pureSpecular > 0) {
-                    Vector3 materialColor = CalculateShading(primaryIntersection, primitive);
-                    Vector3 CameraVector = primaryIntersection - camera.position;
-                    Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
-                    Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
+                    if (primitive.pureSpecular > 0) {
+                        Vector3 materialColor = CalculateShading(primaryIntersection, primitive);
+                        Vector3 CameraVector = primaryIntersection - camera.position;
+                        Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
+                        Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
 
-                    PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1);
-                } else {
-                    PixelColor = CalculateShading(primaryIntersection, primitive);
-                    PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
+                        PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1);
+
+                        //if (debugX % 100 == 0 && reflectedRay.t < maxRayDistance)
+                        //{
+                        //    Type test = primitive.GetType().BaseType;
+                        //    //Console.WriteLine();
+                        //    screen.Line(tx(closestIntersection.position.X), ty(closestIntersection.position.Z), tx(reflectedRay.D.X * reflectedRay.t), ty(reflectedRay.D.Z * reflectedRay.t), color(PixelColor));
+                        //}
+
+                    } else {
+                        PixelColor = CalculateShading(primaryIntersection, primitive);
+                        PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
+                    }
+                    return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255));
                 }
-                return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255));
             }
-            }
-            return new Vector3(0);
+            return new Vector3(135, 206, 235);
 
         }
-    (Intersection, Primitive) CalculateClosestIntersection(Ray ray)
+        (Intersection, Primitive) CalculateClosestIntersection(Ray ray)
+        {
+            Intersection? closestIntersection = null;
+            Primitive? closestPrimitve = null;
+            foreach (Primitive primitive in scene.primitives)
             {
-                Intersection? closestIntersection = null;
-                Primitive? closestPrimitve = null;
-                foreach (Primitive primitive in scene.primitives)
+                Intersection intersection = new Intersection(ray, primitive);
+                // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
+                // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
+                // screen.pixels[position] = die kleur
+                if (intersection.distance == 0) continue;
+
+
+                if (closestIntersection is null || closestIntersection.distance > intersection.distance)
                 {
-                    Intersection intersection = new Intersection(ray, primitive);
-                    // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
-                    // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
-                    // screen.pixels[position] = die kleur
-                    if (intersection.distance == 0) continue;
-
-
-                    if (closestIntersection is null || closestIntersection.distance > intersection.distance)
-                    {
-                        closestIntersection = intersection;
-                    closestPrimitve = primitive;
+                    closestIntersection = intersection;
+                closestPrimitve = primitive;
                 }
-                    
+
                 }
             
         return (closestIntersection, closestPrimitve);
@@ -186,6 +213,7 @@ namespace INFOGR2023Template
                 float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
                 Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, 1000);
 
+
                 bool shadowRayHit = false;
                 foreach (Primitive primitiveObject in scene.primitives)
                 {
@@ -193,6 +221,10 @@ namespace INFOGR2023Template
                     if (shadowIntersection.distance > 0.001)
                     {
                         //Light is blocked -> shadow
+                        if (debugX % 100 == 0)
+                        {
+                            screen.Line(tx(shadowIntersection.position.X), ty(shadowIntersection.position.Z), tx(shadowIntersection.position.X - shadowRay.D.X * shadowRay.t), ty(shadowIntersection.position.Z - shadowRay.D.Z * shadowRay.t), 0x1e1e1e);
+                        }
                         shadowRayHit = true;
                     }
                 }
@@ -245,14 +277,17 @@ namespace INFOGR2023Template
             return Lradiance * (DiffuseShading + SpecularShading);
         }
 
-
+         
         public void RenderDebug()
         {
+            screen.Print(camera.position.ToString(), 0, 0, 0xffffff);
             // plot the camera
             screen.Plot(tx(camera.position.X), ty(camera.position.Z), 0xffffff);
 
             // use a line to visualize the screen plane
             screen.Line(tx(camera.p0.X), ty(camera.p0.Z), tx(camera.p1.X), ty(camera.p1.Z), 0xffffff);
+
+
 
             foreach (var primitive in scene.primitives)
             {
@@ -266,9 +301,6 @@ namespace INFOGR2023Template
 
                             screen.Plot(tx(x), ty(y), color(s.color));
                         }
-                        break;
-                    case Plane p:
-                        
                         break;
                 }
             }
@@ -287,6 +319,8 @@ namespace INFOGR2023Template
                         break;
                 }
             }
+
+
         }
 
         public int color(Vector3 c)

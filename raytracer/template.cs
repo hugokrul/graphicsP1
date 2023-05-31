@@ -78,7 +78,6 @@ namespace INFOGR2023Template
             Surface screen = new(ClientSize.X, ClientSize.Y);
             app = new MyApplication(screen);
             screenID = app.screen.GenTexture();
-            MouseMove += app.MouseMove;
             if (allowPrehistoricOpenGL)
             {
                 GL.Enable(EnableCap.Texture2D);

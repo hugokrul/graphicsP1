@@ -35,21 +35,25 @@ namespace INFOGR2023Template
 
         public void intersectWithSphere(Sphere sphere, Ray ray)
         {
-            Vector3 c = sphere.position - ray.E;
-            float t = Vector3.Dot(c, ray.D);
-            Vector3 q = c - t * ray.D;
-            float p2 = q.LengthSquared;
+            // Calculate the vector from the origin of the ray to the sphere center
+            Vector3 rayVector = sphere.position - ray.E;
 
-            if (p2 > (sphere.radius * sphere.radius)) {
+            float distance = Vector3.Dot(rayVector, ray.D);
+            Vector3 length = rayVector - distance * ray.D;
+            float lengthSquared = length.LengthSquared;
+
+            if (lengthSquared > (sphere.radius * sphere.radius)) {
                //No intersection
                 return;
-            } ;
-            t -= (float)Math.Sqrt((sphere.radius * sphere.radius) - p2);
+            };
+            distance -= (float)Math.Sqrt((sphere.radius * sphere.radius) - lengthSquared);
 
-            if ((t < ray.t) && (t > 0))
+            // if the distance is bigger then the maxRayDistance (10f)
+            // ray.t is initially set to maxRayDistance
+            if ((distance < ray.t) && (distance > 0))
             {
-                ray.t = t;
-                this.distance = t;
+                ray.t = distance;
+                this.distance = distance;
                 Vector3 intersection = ray.E + ray.D * this.distance;
                 this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
@@ -60,7 +64,6 @@ namespace INFOGR2023Template
 
         public void intersectWithPlane(Plane p, Ray ray)
         {
-            // page 21 van slides 4 intro to raytracing
             var denominator = Vector3.Dot(p.normal, ray.D);
 
             if (Math.Abs(denominator) > 0.001f)
