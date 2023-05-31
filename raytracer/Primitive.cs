@@ -17,10 +17,7 @@ namespace INFOGR2023Template
         public Primitive(Vector3 color)
         {
             this.color = color;
-            
         }
-
-        
     }
 
     public class Sphere : Primitive
@@ -53,6 +50,26 @@ namespace INFOGR2023Template
             this.type = "plane";
             this.glossiness = glossiness;
             this.pureSpecular = pureSpecular;
+        }
+    }
+
+    public class Triangle : Primitive
+    {
+        public Vector3 vert0, vert1, vert2;
+        public Vector3 edge1;
+        public Vector3 edge2;
+
+        public Triangle(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 color, float glossiness, float pureSpecular) : base(color)
+        {
+            this.vert0 = v0;
+            this.vert1 = v1;
+            this.vert2 = v2;
+            this.type = "triangle";
+            this.glossiness = glossiness;
+            this.pureSpecular = pureSpecular;
+
+            this.edge1 = vert1 - vert0;
+            this.edge2 = vert2 - vert0;
         }
     }
 }

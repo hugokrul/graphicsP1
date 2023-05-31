@@ -43,9 +43,13 @@ namespace INFOGR2023Template
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
 
             scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0, 0));
-            camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
+
+            scene.primitives.Add(new Triangle(new Vector3(-1, 3, 5), new Vector3(1, 3, 5), new Vector3(0, 4, 7), new Vector3(255, 0, 0), 1, 0));
+
+            camera = new Camera(new Vector3(0, 4, 4), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
 
@@ -160,13 +164,6 @@ namespace INFOGR2023Template
 
                         PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1);
 
-                        //if (debugX % 100 == 0 && reflectedRay.t < maxRayDistance)
-                        //{
-                        //    Type test = primitive.GetType().BaseType;
-                        //    //Console.WriteLine();
-                        //    screen.Line(tx(closestIntersection.position.X), ty(closestIntersection.position.Z), tx(reflectedRay.D.X * reflectedRay.t), ty(reflectedRay.D.Z * reflectedRay.t), color(PixelColor));
-                        //}
-
                     } else {
                         PixelColor = CalculateShading(primaryIntersection, primitive);
                         PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
@@ -193,7 +190,7 @@ namespace INFOGR2023Template
                 if (closestIntersection is null || closestIntersection.distance > intersection.distance)
                 {
                     closestIntersection = intersection;
-                closestPrimitve = primitive;
+                    closestPrimitve = primitive;
                 }
 
                 }
@@ -287,8 +284,6 @@ namespace INFOGR2023Template
             // use a line to visualize the screen plane
             screen.Line(tx(camera.p0.X), ty(camera.p0.Z), tx(camera.p1.X), ty(camera.p1.Z), 0xffffff);
 
-
-
             foreach (var primitive in scene.primitives)
             {
                 switch (primitive)
@@ -301,6 +296,10 @@ namespace INFOGR2023Template
 
                             screen.Plot(tx(x), ty(y), color(s.color));
                         }
+                        break;
+                    case Triangle t:
+                        Console.WriteLine("in");
+                        screen.Line(tx((int)t.vert0.X), ty((int)t.vert0.Z), tx((int)t.vert1.X), ty((int)t.vert0.Z), color(t.color));
                         break;
                 }
             }
@@ -319,8 +318,6 @@ namespace INFOGR2023Template
                         break;
                 }
             }
-
-
         }
 
         public int color(Vector3 c)

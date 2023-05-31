@@ -30,6 +30,9 @@ namespace INFOGR2023Template
                 case Plane p:
                     intersectWithPlane(p, ray);
                     break;
+                case Triangle t:
+                    intersectWithTriangle(t, ray);
+                    break;
             }
         }
 
@@ -79,6 +82,39 @@ namespace INFOGR2023Template
                     Vector3 intersection = ray.E + ray.D * this.distance;
                     this.position = intersection;
                     this.normal = p.normal;
+                }
+            }
+        }
+
+        public void intersectWithTriangle(Triangle t, Ray ray)
+        {
+            var pvec = Vector3.Cross(ray.D, t.edge2);
+
+            var det = Vector3.Dot(t.edge1, pvec);
+
+            if (!(det > -0.001 && det < 0.001))
+            {
+                var invDet = 1f / det;
+
+                var tvec = ray.E - t.vert0;
+
+                var x = Vector3.Dot(tvec, pvec) * invDet;
+
+                if (!(x < 0 || x > 1))
+                {
+                    var qvec = Vector3.Cross(tvec, t.edge1);
+
+                    var y = Vector3.Dot(ray.D, qvec) * invDet;
+
+                    if (!(y < 0 || x + y > 1))
+                    {
+                        var z = Vector3.Dot(t.edge2, qvec) * invDet;
+
+                        this.distance = (new Vector3(x, y, z) - ray.E).Length;
+                        ray.t = this.distance;
+
+                        this.position = new Vector3(x, y, z);
+                    }
                 }
             }
         }
