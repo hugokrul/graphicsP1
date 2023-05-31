@@ -12,7 +12,7 @@ namespace INFOGR2023Template
         public Vector3 color;
         public float glossiness;
         public string type;
-        public bool pureSpecular;
+        public float pureSpecular;
 
         public Primitive(Vector3 color)
         {
@@ -29,7 +29,7 @@ namespace INFOGR2023Template
         public float radius;
         
 
-        public Sphere(Vector3 position, float radius, Vector3 color, float glossiness, bool pureSpecular) : base(color)
+        public Sphere(Vector3 position, float radius, Vector3 color, float glossiness, float pureSpecular) : base(color)
         {
             this.position = position;
             this.radius = radius;
@@ -45,7 +45,7 @@ namespace INFOGR2023Template
         public Vector3 point;
         public float distance;
 
-        public Plane(Vector3 normal, float distance, Vector3 point, Vector3 color, float glossiness, bool pureSpecular) : base(color)
+        public Plane(Vector3 normal, float distance, Vector3 point, Vector3 color, float glossiness, float pureSpecular) : base(color)
         {
             this.normal = normal;
             this.point = point;

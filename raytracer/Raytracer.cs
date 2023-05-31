@@ -36,16 +36,16 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, false));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, true));
-            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, false));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, false));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 0), 1f, new Vector3(100, 255, 100), 1, false));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0f));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0.7f));
+            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 0), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0, false));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0, 0));
             camera = new Camera(new Vector3(0, 0, 1), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
@@ -133,13 +133,13 @@ namespace INFOGR2023Template
                 Vector3 primaryIntersection = closestIntersection.position;
                 Vector3 NormalVector = closestIntersection.normal;
 
-                if (primitive.pureSpecular) {
+                if (primitive.pureSpecular > 0) {
                     Vector3 materialColor = CalculateShading(primaryIntersection, primitive);
                     Vector3 CameraVector = primaryIntersection - camera.position;
                     Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
                     Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
 
-                    PixelColor = materialColor +  Trace(reflectedRay, bounce + 1);
+                    PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1);
                 } else {
                     PixelColor = CalculateShading(primaryIntersection, primitive);
                     PixelColor += new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
@@ -162,20 +162,13 @@ namespace INFOGR2023Template
                     // screen.pixels[position] = die kleur
                     if (intersection.distance == 0) continue;
 
-                    bool intersectedWithOtherObject = false;
 
                     if (closestIntersection is null || closestIntersection.distance > intersection.distance)
                     {
                         closestIntersection = intersection;
-                        intersectedWithOtherObject = true;
-                    }
                     closestPrimitve = primitive;
-
-
-                    if (intersectedWithOtherObject)
-                    {
-                        break;
-                    }
+                }
+                    
                 }
             
         return (closestIntersection, closestPrimitve);
