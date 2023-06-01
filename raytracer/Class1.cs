@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿/*using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTK.Mathematics;
 using static System.Net.Mime.MediaTypeNames;
@@ -564,3 +564,4 @@ public class Intersection
     }
 }
 
+*/
