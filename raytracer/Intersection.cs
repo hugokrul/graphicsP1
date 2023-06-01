@@ -82,6 +82,13 @@ namespace INFOGR2023Template
                     Vector3 intersection = ray.E + ray.D * this.distance;
                     this.position = intersection;
                     this.normal = p.normal;
+
+                    /*if (true) //texture
+                    {
+                        var op = p.intersection - ray.Origin + ray.Direction * d;
+                        p.scalarU = Vector3.Dot(op, p.TexturingU) / p.TexturingU.LengthSquared;
+                        p.scalarV = Vector3.Dot(op, p.TexturingV) / p.TexturingV.LengthSquared;
+                    }*/
                 }
             }
         }

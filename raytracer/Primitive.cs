@@ -41,6 +41,8 @@ namespace INFOGR2023Template
         public Vector3 normal;
         public Vector3 point;
         public float distance;
+        public int scalarU;
+        public int scalarV;
 
         public Plane(Vector3 normal, float distance, Vector3 point, Vector3 color, float glossiness, float pureSpecular) : base(color)
         {
@@ -58,6 +60,7 @@ namespace INFOGR2023Template
         public Vector3 vert0, vert1, vert2;
         public Vector3 edge1;
         public Vector3 edge2;
+        public Vector3 normal;
 
         public Triangle(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 color, float glossiness, float pureSpecular) : base(color)
         {
@@ -70,6 +73,8 @@ namespace INFOGR2023Template
 
             this.edge1 = vert1 - vert0;
             this.edge2 = vert2 - vert0;
+
+            this.normal = Vector3.Cross(this.edge1, this.edge2);
         }
     }
 }
