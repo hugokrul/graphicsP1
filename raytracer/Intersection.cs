@@ -60,6 +60,13 @@ namespace INFOGR2023Template
                 Vector3 intersection = ray.E + ray.D * this.distance;
                 this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
+
+                /*if (sphere.Texture) //texture
+                {
+                    var op = new Vector3((sphere.position.X + sphere.radius*));
+                    s.scalarU = Vector3.Dot(op, p.TexturingU);
+                    p.scalarV = Vector3.Dot(op, p.TexturingV);
+                }*/
             }
        
 
@@ -83,12 +90,19 @@ namespace INFOGR2023Template
                     this.position = intersection;
                     this.normal = p.normal;
 
-                    /*if (true) //texture
+                    if (p.Texture) //texture
                     {
-                        var op = p.intersection - ray.Origin + ray.Direction * d;
-                        p.scalarU = Vector3.Dot(op, p.TexturingU) / p.TexturingU.LengthSquared;
-                        p.scalarV = Vector3.Dot(op, p.TexturingV) / p.TexturingV.LengthSquared;
-                    }*/
+                        var op = ray.E + ray.D * this.distance;
+                        p.scalarU = Vector3.Dot(op, p.TexturingU);
+                        if (p.scalarU < 0) {
+                            p.scalarU = 1 + -p.scalarU;
+                        }
+                        p.scalarV = Vector3.Dot(op, p.TexturingV);
+                        if (p.scalarV < 0)
+                        {
+                            p.scalarV = 1 + -p.scalarV;
+                        }
+                    }
                 }
             }
         }

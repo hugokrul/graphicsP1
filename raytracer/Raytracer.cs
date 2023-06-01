@@ -35,17 +35,17 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0));
-            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0.7f));
-            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0));
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0, true));
+            scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0.7f, false));
+            scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0, false));
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0, false));
             //scene.primitives.Add(new Sphere(new Vector3(0, 0, -1.5f), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
             //scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(100, 100, 100), 0, 0));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
             scene.primitives.Add(new Triangle(new Vector3(3, 0, 5), new Vector3(5, 0, 5), new Vector3(4, 2, 5), new Vector3(255, 0, 0), 1, 0));
 
@@ -167,10 +167,12 @@ namespace INFOGR2023Template
                     } else {
                         PixelColor = CalculateShading(primaryIntersection, primitive);
                         Vector3 ambient = new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
+                        
                         switch (primitive)
                         {
                             case Plane p:
-                                //ambient = ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
+                                
+                                ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
                                 break;
                         }
                         
