@@ -19,7 +19,6 @@ namespace INFOGR2023Template
         public Vector3 right;
         private float rotationSpeed = 0.03f;
         
-
         public Camera(Vector3 position, Vector3 direction, Vector3 upDirection, float alpha)
         {
             this.position = position;
@@ -33,8 +32,6 @@ namespace INFOGR2023Template
             p0 = center + upDirection + right;
             p1 = center + upDirection - right;
             p2 = center - upDirection + right;
-
-            
         }
 
         // Updates the screen to move with the camera

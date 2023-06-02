@@ -110,7 +110,6 @@ namespace INFOGR2023Template
             raytracer.scene.primitives.Add(new Triangle(v0, v3, v1, this.color, this.glossiness, this.pureSpecular));
             raytracer.scene.primitives.Add(new Triangle(v0, v2, v3, this.color, this.glossiness, this.pureSpecular));
             raytracer.scene.primitives.Add(new Triangle(v2, v3, v1, this.color, this.glossiness, this.pureSpecular));
-
         }
     }
 }

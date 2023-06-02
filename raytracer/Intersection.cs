@@ -64,22 +64,7 @@ namespace INFOGR2023Template
                 Vector3 intersection = ray.E + ray.D * distance;
                 this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
-
-                /*if (sphere.Texture) //texture
-                {
-                    float a = Vector3.CalculateAngle((new Vector3(sphere.position.X, sphere.position.Y, sphere.position.Z + sphere.radius) - sphere.position), (intersection - sphere.position));//hoek
-                    float b = (float)Math.Atan2((sphere.position.Y + sphere.radius) - sphere.position.Y, (sphere.position.X + sphere.radius) - sphere.position.X);
-                    var op = new Vector3((float)(sphere.position.X + sphere.radius*Math.Cos(a)*Math.Sin(b)), (float)(sphere.position.Y + sphere.radius * Math.Sin(a) * Math.Sin(b)), (float)(sphere.position.Z + sphere.radius * Math.Cos(b)));
-
-                    sphere.TexturingU = (float)((b + Math.PI) / (2 * Math.PI));
-                    sphere.TexturingV = (float)(a  / (Math.PI));
-
-                    sphere.scalarU = Vector3.Dot(op, sphere.TexturingU);
-                    sphere.scalarV = Vector3.Dot(op, sphere.TexturingV);
-                }*/
             }
-       
-
         }
 
         public void intersectWithPlane(Plane p, Ray ray)

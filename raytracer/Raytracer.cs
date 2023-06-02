@@ -42,12 +42,12 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0, false));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 1, new Vector3(255, 255, 255)));
-           scene.lights.Add(new Light(new Vector3(0, 6, 5), 2, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(0, 6, 5), 2, new Vector3(255, 255, 255)));
             scene.lights.Add(new SpotLight(new Vector3(0, 4, 1), 3, new Vector3(255, 255, 255), new Vector3(0,1,0), 10));
 
             scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
-          scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
+            scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
 
             camera = new Camera(new Vector3(0, 0.3f, -2), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 80f);
             maxRayDistance = 10f;
@@ -55,7 +55,6 @@ namespace INFOGR2023Template
 
         public void Render()
         {
-            
             if (keyboard.IsKeyDown(Keys.T))
             {
                 camera.position = new Vector3(0, 0, 1);
@@ -191,12 +190,6 @@ namespace INFOGR2023Template
                                     ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
                                 }
                                 break;
-                           /* case Sphere s:
-                                if (s.Texture)
-                                {
-                                    ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
-                                }
-                                break;*/
                         }
                         
                         PixelColor += ambient;
@@ -207,8 +200,8 @@ namespace INFOGR2023Template
             }
             //Color of the sky
             return new Vector3(135, 206, 235);
-
         }
+
         (Intersection, Primitive) CalculateClosestIntersection(Ray ray)
         {
             Intersection? closestIntersection = null;
@@ -229,14 +222,9 @@ namespace INFOGR2023Template
                     closestIntersection = intersection;
                     closestPrimitve = primitive;
                 }
-                
-
             }
-            
         return (closestIntersection, closestPrimitve);
-        }
-
-        
+        } 
 
         Vector3 CalculateShading(Vector3 primaryIntersection, Primitive primitive, int debugX) {
             Vector3 PixelColor = new Vector3(0,0,0); //base color: black
@@ -265,7 +253,6 @@ namespace INFOGR2023Template
                             }
                             break;
                     }
-
                 }
 
                 //if the shadow ray doesn't hit anything calculate the pixel color
@@ -467,5 +454,4 @@ namespace INFOGR2023Template
             return (int)y;
         }
     }
-
 }
