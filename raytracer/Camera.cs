@@ -20,17 +20,19 @@ namespace INFOGR2023Template
         private float rotationSpeed = 0.03f;
         
 
-        public Camera(Vector3 position, Vector3 direction, Vector3 upDirection, float fov)
+        public Camera(Vector3 position, Vector3 direction, Vector3 upDirection, float alpha)
         {
             this.position = position;
             this.direction = direction;
             this.upDirection = upDirection;
-            this.fov = fov;
+            this.fov = (float)Math.Abs(Math.Tan(alpha/2));
             this.right = Vector3.Cross(direction, upDirection);
             Vector3 center = position + fov * direction;
             p0 = center + upDirection + right;
             p1 = center + upDirection - right;
             p2 = center - upDirection + right;
+
+            
         }
 
         public void updatePosition()
