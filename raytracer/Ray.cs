@@ -12,7 +12,6 @@ namespace INFOGR2023Template
         public Vector3 E;
         public Vector3 D;
         public float t;
-        //MAX NUMBER OF BOUNCES
 
         public Ray(Vector3 E, Vector3 D, float t)
         {

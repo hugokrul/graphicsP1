@@ -35,20 +35,18 @@ namespace INFOGR2023Template
         {
             screen = app.screen;
             scene = new Scene();
-            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 1, 0, true));
+            //Add primitives
+            scene.primitives.Add(new Sphere(new Vector3(0, 0, 5), 1f, new Vector3(100, 100, 100), 3, 0, true));
             scene.primitives.Add(new Sphere(new Vector3(-2.5f, 0, 5), 1f, new Vector3(255, 0, 0), 3, 0.7f, false));
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0, false));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0, false));
-            //scene.primitives.Add(new Sphere(new Vector3(0, 0, -1.5f), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
-            //scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
             scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
-            //scene.lights.Add(new SpotLight(new Vector3(0, 5, 15), 10, new Vector3(255, 255, 255), new Vector3(0,-1,0), 160));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
+           scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
-            scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
+           scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
 
             camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 90f);
             maxRayDistance = 10f;
@@ -56,7 +54,7 @@ namespace INFOGR2023Template
 
         public void Render()
         {
-            // Hier een switch case van maken!!!!
+            
             if (keyboard.IsKeyDown(Keys.T))
             {
                 camera.position = new Vector3(0, 0, 1);
@@ -118,10 +116,12 @@ namespace INFOGR2023Template
                 camera.roll(-rotationSpeed);
             }
 
+            //go trough every pixel of the screen
             for (debugX = 0;  debugX < screen.width/2; debugX++)
             {
                 for (debugY = 0; debugY < screen.height; debugY++)
                 {
+                    //define the position of the pixel in the screen
                     int position = debugX + debugY * screen.width + screen.width / 2;
 
                     Vector3 u = camera.p1 - camera.p0;
@@ -133,35 +133,52 @@ namespace INFOGR2023Template
                     Vector3 point = camera.p0 + a * u + b * v;
                     Vector3 Direction = Vector3.Normalize(point - camera.position);
 
+                    //Make a ray from the camera to the pixel of the screen
                     Ray ray = new Ray(camera.position, Direction, maxRayDistance);
 
+                    //Get the pixel color of that pixel
+                    Vector3 pixelColor = Trace(ray, 0, debugX);
 
-                    Vector3 pixelColor = Trace(ray, 0);
+                    //draw the pixelColor on the screen
                     screen.pixels[position] = color(pixelColor);
                 }
             } 
         }
 
-        Vector3 Trace(Ray ray, int bounce) {
-            Vector3 PixelColor = new Vector3(0, 0, 0); //black
+        Vector3 Trace(Ray ray, int bounce, int debugX) {
+            Vector3 PixelColor = new Vector3(0, 0, 0); //black, initial color
 
-            if(bounce < 1000) { //maxBounces
+            if (bounce < 10) { //maxBounces
+                //Get the closest intersection of the ray with any primitive
                 (Intersection closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
             
+                //If there is an intersection
                 if (closestIntersection != null) {
                     Vector3 primaryIntersection = closestIntersection.position;
                     Vector3 NormalVector = closestIntersection.normal;
 
+                    //Debug the secondary rays
+                    if (bounce >= 1 && closestIntersection.distance < 8f && closestIntersection.ray.D.Y == 0 )
+                    {
+                        screen.Line(tx(closestIntersection.position.X), ty(closestIntersection.position.Z), tx(closestIntersection.ray.E.X), ty(closestIntersection.ray.E.Z), 0xffffff);
+                    }
+
+                    //Check if the ray will be reflected
                     if (primitive.pureSpecular > 0) {
-                        Vector3 materialColor = CalculateShading(primaryIntersection, primitive);
+                        //Get the standard color as if the primitive was not reflective
+                        Vector3 materialColor = CalculateShading(primaryIntersection, primitive, debugX);
                         Vector3 CameraVector = primaryIntersection - camera.position;
                         Vector3 ReflectedVector = Vector3.Normalize(CameraVector - 2 * (Vector3.Dot(CameraVector, NormalVector)) * NormalVector);
                         Ray reflectedRay = new Ray(primaryIntersection, ReflectedVector, maxRayDistance);
 
-                        PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1);
+                        //Trace the environment again with the reflected Ray and add this to the pixelColor
+                        PixelColor = materialColor * primitive.pureSpecular + Trace(reflectedRay, bounce + 1, debugX);
 
                     } else {
-                        PixelColor = CalculateShading(primaryIntersection, primitive);
+                        //Add the pixelColor with shading of the lights in the environment
+                        PixelColor = CalculateShading(primaryIntersection, primitive, debugX);
+
+                        //Add an ambient light to the color of the object. This eliminates black pixels of the objects.
                         Vector3 ambient = new Vector3(primitive.color.X, primitive.color.Y, primitive.color.Z) * new Vector3(ambientLightingAmount);
                         
                         switch (primitive)
@@ -169,6 +186,7 @@ namespace INFOGR2023Template
                             case Plane p:
                                 if (p.Texture)
                                 {
+                                    //Texturing a checkboard pattern to a plane that has the Texture set to true
                                     ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
                                 }
                                 break;
@@ -182,9 +200,11 @@ namespace INFOGR2023Template
                         
                         PixelColor += ambient;
                     }
+                    //The pixelColor can't be higher than the color white as it will generate artifects when it goes over 255
                     return Vector3.ComponentMin(PixelColor, new Vector3(255, 255, 255));
                 }
             }
+            //Color of the sky
             return new Vector3(135, 206, 235);
 
         }
@@ -194,15 +214,17 @@ namespace INFOGR2023Template
             Primitive? closestPrimitve = null;
             foreach (Primitive primitive in scene.primitives)
             {
+                //Intersect the ray with every primitive in the scene
                 Intersection intersection = new Intersection(ray, primitive);
                 // als de distance kleiner of gelijk aan maxdistance dan is er een intersection
                 // die primitive heeft een kleur. de kleur kan je gooien naar die pixel.
                 // screen.pixels[position] = die kleur
                 if (intersection.distance == 0) continue;
 
-
+                
                 if (closestIntersection is null || closestIntersection.distance > intersection.distance)
                 {
+                    //store the intersection in closestIntersection and overwrite it if the distance of the new intersection is less than the stored distance
                     closestIntersection = intersection;
                     closestPrimitve = primitive;
                 }
@@ -215,28 +237,52 @@ namespace INFOGR2023Template
 
         
 
-        Vector3 CalculateShading(Vector3 primaryIntersection, Primitive primitive) {
-            Vector3 PixelColor = new Vector3(0,0,0);
+        Vector3 CalculateShading(Vector3 primaryIntersection, Primitive primitive, int debugX) {
+            Vector3 PixelColor = new Vector3(0,0,0); //base color: black
+
             foreach (Light light in scene.lights)
             {
+                //go through every light in the scene
+
+                //Debug the shadow rays, depending on the shape. Planes are excluded as the ground generates too many rays.
+                if (debugX % 10 == 0) {
+                    switch (primitive)
+                    {
+                        case (Sphere s):
+                            //if the middle of the sphere is equal to the height primaryIntersection
+                            if (s.position.Y == primaryIntersection.Y)
+                            {
+                                screen.Line(tx(light.position.X), ty(light.position.Z), tx(primaryIntersection.X), ty(primaryIntersection.Z), 0x696969);
+                            }
+                            break;
+                        case (Triangle t):
+                            //if the vert0 point is equal to the height of the primaryIntersection
+                            if (t.vert0.Y == primaryIntersection.Y)
+                            {
+                                screen.Line(tx(light.position.X), ty(light.position.Z), tx(primaryIntersection.X), ty(primaryIntersection.Z), 0x696969);
+                            }
+                            break;
+                    }
+                    
+                }
+
                 //if the shadow ray doesn't hit anything calculate the pixel color
                 Vector3 LightDirection = light.position - primaryIntersection;
                 Vector3 LightDirectionNormalized = Vector3.Normalize(LightDirection);
-                bool renderLight = true;
-                switch (light)
+                /*switch (light)
                 {
                     case SpotLight sl:
                        renderLight = (180 / Math.PI) * Vector3.CalculateAngle(sl.Direction, LightDirectionNormalized) <= sl.maxAngle;
                         break;
-                }
+                }*/
 
-                if (renderLight) {
-
-                    float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
+                float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
+                //shoot a shadow ray from the intersection to the light
                 Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, 1000);
 
 
                 bool shadowRayHit = false;
+                //Check if the ray hits anything (with a margin of 0.0001 to eliminate light acne)
                 foreach (Primitive primitiveObject in scene.primitives)
                 {
                     Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
@@ -246,14 +292,17 @@ namespace INFOGR2023Template
                     }
                 }
 
+                //if there is no shadow in this pixel
                 if (!shadowRayHit)
                 {
+                    //calculate the Lradiance of the pixel compared to the current light
                     float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
                     Vector3 CameraDirection = primaryIntersection - camera.position;
                     Vector3 Normal = new Vector3(0, 0, 0);
                     Vector3 ReflectedColor = new Vector3(0, 0, 0);
                     float glossiness = primitive.glossiness;
 
+                    //Get the Reflected color and the normal of the current primitive type
                     switch (primitive)
                     {
                         case Sphere s:
@@ -271,6 +320,7 @@ namespace INFOGR2023Template
                             }
                         case Triangle t:
                             {
+                                    
                                 Normal = t.normal;
                                 ReflectedColor = CalculateReflectedColor(light, t);
                                 break;
@@ -281,20 +331,23 @@ namespace INFOGR2023Template
                     float diffuseAngle = Vector3.Dot(Normal, LightDirection);
                     float glossyAngle = Vector3.Dot(CameraDirection, ReflectedVector);
 
+                    //Add the PixelColor which is calculated with the diffusement and glossiness added together
                     PixelColor += CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
                 }
-            }
             }
             return PixelColor;
         }
 
         Vector3 CalculateReflectedColor(Light light, Primitive p)
         {
+            //The product of  the base color and the light color together
             return new Vector3(((light.color.X / 255) * (p.color.X / 255)) * 255, ((light.color.Y / 255) * (p.color.Y / 255)) * 255, ((light.color.Z / 255) * (p.color.Z / 255)) * 255);
         }
 
         Vector3 CalculatePixelColor(float Lradiance, float diffuseAngle, float glossyAngle, Vector3 ReflectedColor, Vector3 GlossyColor, float glossiness)
         {
+            //The diffuseShading and the Specular shading added together
+            //Math.Max(0) to eliminate angles greater than 90deg.
             Vector3 DiffuseShading = (Math.Max(0, diffuseAngle)) * ReflectedColor;
             Vector3 SpecularShading = (float)Math.Pow(Math.Max(0, glossyAngle), glossiness) * GlossyColor;
 
