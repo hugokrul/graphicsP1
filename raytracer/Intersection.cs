@@ -10,6 +10,7 @@ namespace INFOGR2023Template
 {
     public class Intersection
     {
+        // Distance can be null
         public float? distance;        
         public Primitive primitive;
         public Vector3 normal;
@@ -44,12 +45,15 @@ namespace INFOGR2023Template
             float distance = Vector3.Dot(rayVector, ray.D);
             Vector3 length = rayVector - distance * ray.D;
             float lengthSquared = length.LengthSquared;
+            float sphereRadiusSquared = sphere.radius * sphere.radius;
 
-            if (lengthSquared > (sphere.radius * sphere.radius)) {
+            if (lengthSquared > sphereRadiusSquared) {
                //No intersection
                 return;
             };
-            distance -= (float)Math.Sqrt((sphere.radius * sphere.radius) - lengthSquared);
+
+            // The distance between ray.E and the intersectionpoint of the sphere.
+            distance -= (float)Math.Sqrt(sphereRadiusSquared - lengthSquared);
 
             // if the distance is bigger then the maxRayDistance (10f)
             // ray.t is initially set to maxRayDistance
@@ -80,9 +84,17 @@ namespace INFOGR2023Template
 
         public void intersectWithPlane(Plane p, Ray ray)
         {
+            // https://samsymons.com/blog/math-notes-ray-plane-intersection/
+            // The above website helped me to calculate the distance 
+            // The function we need to solve is:
+            /* 
+                ((planePoint - rayÓrigin) Dot planeNormal) / (rayDirection Dot planeNormal)
+            */
+            // First calculate the denominator, if that is zero, 
             var denominator = Vector3.Dot(p.normal, ray.D);
 
-            if (Math.Abs(denominator) > 0.01f)
+            // make sure we don't get negative distances.
+            if (Math.Abs(denominator) > 0.001f)
             {
                 var difference = p.point - ray.E;
                 var t = Vector3.Dot(difference, p.normal) / denominator;

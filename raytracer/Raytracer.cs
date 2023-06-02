@@ -50,7 +50,7 @@ namespace INFOGR2023Template
 
             scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
 
-            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 10f);
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 90f);
             maxRayDistance = 10f;
         }
 
