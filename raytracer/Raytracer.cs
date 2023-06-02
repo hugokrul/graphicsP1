@@ -42,8 +42,9 @@ namespace INFOGR2023Template
             //scene.primitives.Add(new Sphere(new Vector3(0, 0, -1.5f), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
-            scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
-            //scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
+            //scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
+            scene.lights.Add(new SpotLight(new Vector3(0, 5, 15), 10, new Vector3(255, 255, 255), new Vector3(0,-1,0), 160));
 
             scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
@@ -166,9 +167,17 @@ namespace INFOGR2023Template
                         switch (primitive)
                         {
                             case Plane p:
-                                
-                                ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
+                                if (p.Texture)
+                                {
+                                    ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
+                                }
                                 break;
+                           /* case Sphere s:
+                                if (s.Texture)
+                                {
+                                    ambient *= ((int)p.scalarU + (int)p.scalarV & 1) * new Vector3(1, 1, 1);
+                                }
+                                break;*/
                         }
                         
                         PixelColor += ambient;
@@ -213,7 +222,17 @@ namespace INFOGR2023Template
                 //if the shadow ray doesn't hit anything calculate the pixel color
                 Vector3 LightDirection = light.position - primaryIntersection;
                 Vector3 LightDirectionNormalized = Vector3.Normalize(LightDirection);
-                float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
+                bool renderLight = true;
+                switch (light)
+                {
+                    case SpotLight sl:
+                       renderLight = (180 / Math.PI) * Vector3.CalculateAngle(sl.Direction, LightDirectionNormalized) <= sl.maxAngle;
+                        break;
+                }
+
+                if (renderLight) {
+
+                    float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
                 Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, 1000);
 
 
@@ -264,6 +283,7 @@ namespace INFOGR2023Template
 
                     PixelColor += CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
                 }
+            }
             }
             return PixelColor;
         }
