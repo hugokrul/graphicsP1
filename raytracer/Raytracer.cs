@@ -41,14 +41,15 @@ namespace INFOGR2023Template
             scene.primitives.Add(new Sphere(new Vector3(2.5f, 0, 5), 1f, new Vector3(0, 0, 255), 1, 0, false));
             scene.primitives.Add(new Sphere(new Vector3(0, 0, 7), 1f, new Vector3(255, 255, 255), 1, 0, false));
 
-            scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
-            scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(4, 5, 2), 1, new Vector3(255, 255, 255)));
+           scene.lights.Add(new Light(new Vector3(0, 6, 5), 2, new Vector3(255, 255, 255)));
+            scene.lights.Add(new SpotLight(new Vector3(0, 4, 1), 3, new Vector3(255, 255, 255), new Vector3(0,1,0), 10));
 
-           scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
-           scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
+          scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
 
-            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 90f);
+            camera = new Camera(new Vector3(0, 0.3f, -2), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 80f);
             maxRayDistance = 10f;
         }
 
@@ -245,7 +246,8 @@ namespace INFOGR2023Template
                 //go through every light in the scene
 
                 //Debug the shadow rays, depending on the shape. Planes are excluded as the ground generates too many rays.
-                if (debugX % 10 == 0) {
+                if (debugX % 10 == 0)
+                {
                     switch (primitive)
                     {
                         case (Sphere s):
@@ -263,76 +265,84 @@ namespace INFOGR2023Template
                             }
                             break;
                     }
-                    
+
                 }
 
                 //if the shadow ray doesn't hit anything calculate the pixel color
                 Vector3 LightDirection = light.position - primaryIntersection;
                 Vector3 LightDirectionNormalized = Vector3.Normalize(LightDirection);
-                /*switch (light)
+                bool renderLight = false;
+                switch (light)
                 {
-                    case SpotLight sl:
-                       renderLight = (180 / Math.PI) * Vector3.CalculateAngle(sl.Direction, LightDirectionNormalized) <= sl.maxAngle;
+                    default:
+                        renderLight = true;
                         break;
-                }*/
-
-                float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
-                //shoot a shadow ray from the intersection to the light
-                Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, 1000);
-
-
-                bool shadowRayHit = false;
-                //Check if the ray hits anything (with a margin of 0.0001 to eliminate light acne)
-                foreach (Primitive primitiveObject in scene.primitives)
-                {
-                    Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
-                    if (shadowIntersection.distance > 0.0001)
-                    {
-                        shadowRayHit = true;
-                    }
+                    case SpotLight sl:
+                        renderLight = (180 / Math.PI) * Vector3.CalculateAngle(sl.Direction, LightDirectionNormalized) <= sl.maxAngle;
+                       
+                        break;
                 }
 
-                //if there is no shadow in this pixel
-                if (!shadowRayHit)
+                if (renderLight)
                 {
-                    //calculate the Lradiance of the pixel compared to the current light
-                    float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
-                    Vector3 CameraDirection = primaryIntersection - camera.position;
-                    Vector3 Normal = new Vector3(0, 0, 0);
-                    Vector3 ReflectedColor = new Vector3(0, 0, 0);
-                    float glossiness = primitive.glossiness;
+                    float LightDistance = Vector3.Distance(LightDirection, primaryIntersection);
+                    //shoot a shadow ray from the intersection to the light
+                    Ray shadowRay = new Ray(primaryIntersection, LightDirectionNormalized, 1000);
 
-                    //Get the Reflected color and the normal of the current primitive type
-                    switch (primitive)
+
+                    bool shadowRayHit = false;
+                    //Check if the ray hits anything (with a margin of 0.0001 to eliminate light acne)
+                    foreach (Primitive primitiveObject in scene.primitives)
                     {
-                        case Sphere s:
-                            {
-                                Normal = primaryIntersection - s.position;
-                                ReflectedColor = CalculateReflectedColor(light, s);
-
-                                break;
-                            }
-                        case Plane p:
-                            {
-                                Normal = p.normal;
-                                ReflectedColor = CalculateReflectedColor(light, p);
-                                break;
-                            }
-                        case Triangle t:
-                            {
-                                    
-                                Normal = t.normal;
-                                ReflectedColor = CalculateReflectedColor(light, t);
-                                break;
-                            }
+                        Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
+                        if (shadowIntersection.distance > 0.0001)
+                        {
+                            shadowRayHit = true;
+                        }
                     }
-                    Vector3 ReflectedVector = LightDirection - 2 * (Vector3.Dot(LightDirection, Normal)) * Normal;
 
-                    float diffuseAngle = Vector3.Dot(Normal, LightDirection);
-                    float glossyAngle = Vector3.Dot(CameraDirection, ReflectedVector);
+                    //if there is no shadow in this pixel
+                    if (!shadowRayHit)
+                    {
+                        //calculate the Lradiance of the pixel compared to the current light
+                        float Lradiance = light.intensity * (1 / (float)Math.Pow(Vector3.Distance(primaryIntersection, light.position), 2));
+                        Vector3 CameraDirection = primaryIntersection - camera.position;
+                        Vector3 Normal = new Vector3(0, 0, 0);
+                        Vector3 ReflectedColor = new Vector3(0, 0, 0);
+                        float glossiness = primitive.glossiness;
 
-                    //Add the PixelColor which is calculated with the diffusement and glossiness added together
-                    PixelColor += CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
+                        //Get the Reflected color and the normal of the current primitive type
+                        switch (primitive)
+                        {
+                            case Sphere s:
+                                {
+                                    Normal = primaryIntersection - s.position;
+                                    ReflectedColor = CalculateReflectedColor(light, s);
+
+                                    break;
+                                }
+                            case Plane p:
+                                {
+                                    Normal = p.normal;
+                                    ReflectedColor = CalculateReflectedColor(light, p);
+                                    break;
+                                }
+                            case Triangle t:
+                                {
+
+                                    Normal = t.normal;
+                                    ReflectedColor = CalculateReflectedColor(light, t);
+                                    break;
+                                }
+                        }
+                        Vector3 ReflectedVector = LightDirection - 2 * (Vector3.Dot(LightDirection, Normal)) * Normal;
+
+                        float diffuseAngle = Vector3.Dot(Normal, LightDirection);
+                        float glossyAngle = Vector3.Dot(CameraDirection, ReflectedVector);
+
+                        //Add the PixelColor which is calculated with the diffusement and glossiness added together
+                        PixelColor += CalculatePixelColor(Lradiance, diffuseAngle, glossyAngle, ReflectedColor, new Vector3(0.1f, 0.1f, 0.1f), glossiness);
+                    }
                 }
             }
             return PixelColor;
