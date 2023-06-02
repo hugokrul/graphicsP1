@@ -10,7 +10,7 @@ namespace INFOGR2023Template
 {
     public class Intersection
     {
-        public float distance;        
+        public float? distance;        
         public Primitive primitive;
         public Vector3 normal;
         public Ray ray;
@@ -57,7 +57,7 @@ namespace INFOGR2023Template
             {
                 ray.t = distance;
                 this.distance = distance;
-                Vector3 intersection = ray.E + ray.D * this.distance;
+                Vector3 intersection = ray.E + ray.D * distance;
                 this.position = intersection;
                 this.normal = Vector3.Normalize(intersection - sphere.position);
 
@@ -76,7 +76,7 @@ namespace INFOGR2023Template
         {
             var denominator = Vector3.Dot(p.normal, ray.D);
 
-            if (Math.Abs(denominator) > 0.001f)
+            if (Math.Abs(denominator) > 0.01f)
             {
                 var difference = p.point - ray.E;
                 var t = Vector3.Dot(difference, p.normal) / denominator;
@@ -86,13 +86,13 @@ namespace INFOGR2023Template
                     this.distance = t;
                     ray.t = t;
 
-                    Vector3 intersection = ray.E + ray.D * this.distance;
+                    Vector3 intersection = ray.E + ray.D * t;
                     this.position = intersection;
                     this.normal = p.normal;
 
                     if (p.Texture) //texture
                     {
-                        var op = ray.E + ray.D * this.distance;
+                        var op = ray.E + ray.D * t;
                         p.scalarU = Vector3.Dot(op, p.TexturingU);
                         if (p.scalarU < 0) {
                             p.scalarU = 1 + -p.scalarU;
@@ -107,37 +107,31 @@ namespace INFOGR2023Template
             }
         }
 
-        public void intersectWithTriangle(Triangle t, Ray ray)
+        public void intersectWithTriangle(Triangle triangle, Ray ray)
         {
-            var pvec = Vector3.Cross(ray.D, t.edge2);
+            Plane plane = new Plane(Vector3.Cross(triangle.edge1, triangle.edge2).Normalized(), triangle.vert0, new Vector3(255, 0, 0), 1, 0, false);
+            var intersection = new Intersection(ray, plane);
 
-            var det = Vector3.Dot(t.edge1, pvec);
-
-            if (!(det > -0.001 && det < 0.001))
+            if (intersection.distance == null)
             {
-                var invDet = 1f / det;
-
-                var tvec = ray.E - t.vert0;
-
-                var x = Vector3.Dot(tvec, pvec) * invDet;
-
-                if (!(x < 0 || x > 1))
-                {
-                    var qvec = Vector3.Cross(tvec, t.edge1);
-
-                    var y = Vector3.Dot(ray.D, qvec) * invDet;
-
-                    if (!(y < 0 || x + y > 1))
-                    {
-                        var z = Vector3.Dot(t.edge2, qvec) * invDet;
-
-                        this.distance = (new Vector3(x, y, z) - ray.E).Length;
-                        ray.t = this.distance;
-
-                        this.position = new Vector3(x, y, z);
-                    }
-                }
+                return;
             }
+
+            var planeNormal = plane.normal;
+            var intersectionPoint = ray.E + ray.D * intersection.distance;
+
+            if (
+                Vector3.Dot(Vector3.Cross((triangle.vert1 - triangle.vert0), (Vector3)(intersectionPoint - triangle.vert0)), planeNormal) < 0 ||
+                Vector3.Dot(Vector3.Cross((triangle.vert2 - triangle.vert1), (Vector3)(intersectionPoint - triangle.vert1)), planeNormal) < 0 ||
+                Vector3.Dot(Vector3.Cross((triangle.vert0 - triangle.vert2), (Vector3)(intersectionPoint - triangle.vert2)), planeNormal) < 0
+                )
+            {
+                return;
+            }
+
+            this.distance = intersection.distance;
+            ray.t = (float)this.distance;
+            this.normal = planeNormal;
         }
     }
 }

@@ -15,18 +15,18 @@ namespace INFOGR2023Template
 {
     public class Raytracer
     {
-        private Surface screen;
+        public Surface screen;
         public Camera camera;
-        private float maxRayDistance;
-        private Scene scene;
+        public float maxRayDistance;
+        public Scene scene;
         public KeyboardState keyboard;
 
         public float top = -1f;
         public float left = -5f;
         public float scale = 10f;
-        private float rotationSpeed = 5f;
-        private int debugX;
-        private int debugY;
+        public float rotationSpeed = 5f;
+        public int debugX;
+        public int debugY;
 
         public float ambientLightingAmount = 0.1f;
 
@@ -42,14 +42,14 @@ namespace INFOGR2023Template
             //scene.primitives.Add(new Sphere(new Vector3(0, 0, -1.5f), 1f, new Vector3(100, 255, 100), 1, 0));
 
             scene.lights.Add(new Light(new Vector3(4, 5, 2), 3, new Vector3(255, 255, 255)));
-            //scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
-            scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
+            scene.lights.Add(new Light(new Vector3(-4, 5, 2), 5, new Vector3(255, 255, 255)));
+            //scene.lights.Add(new Light(new Vector3(0, 6, 5), 5, new Vector3(255, 255, 255)));
 
-            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), 0f, new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
+            scene.primitives.Add(new Plane(new Vector3(0, 1f, 0), new Vector3(0, -1, 5), new Vector3(150, 150, 150), 0, 0, true));
 
-            scene.primitives.Add(new Triangle(new Vector3(3, 0, 5), new Vector3(5, 0, 5), new Vector3(4, 2, 5), new Vector3(255, 0, 0), 1, 0));
+            scene.primitives.Add(new Pyramide(new Vector3(2, -1, 7), new Vector3(4, -1, 7), new Vector3(3, -1, 9), new Vector3(3, 0, 8), new Vector3(255, 0, 0), 1, 0, this));
 
-            camera = new Camera(new Vector3(0, 1, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 0), 1f);
+            camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, -1), new Vector3(0, 1, 0), 1f);
             maxRayDistance = 10f;
         }
 
@@ -126,7 +126,7 @@ namespace INFOGR2023Template
                     Vector3 u = camera.p1 - camera.p0;
                     Vector3 v = camera.p2 - camera.p0;
 
-                    float a = (float)debugX / (float)(screen.width/2);
+                    float a = (float)debugX / (float)(screen.width / 2);
                     float b = (float)debugY / (float)(screen.height);
 
                     Vector3 point = camera.p0 + a * u + b * v;
@@ -134,14 +134,9 @@ namespace INFOGR2023Template
 
                     Ray ray = new Ray(camera.position, Direction, maxRayDistance);
 
+
                     Vector3 pixelColor = Trace(ray, 0);
                     screen.pixels[position] = color(pixelColor);
-
-                    //Debug rays
-                    if (debugX % 20 == 0 && ray.D.Y <= 0.01 && ray.D.Y >= -0.01 && ray.t <= maxRayDistance)
-                    {
-                        screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(camera.position.X + ray.D.X * ray.t), ty(camera.position.Z + ray.D.Z * ray.t), 0x473f0a);
-                    }
                 }
             } 
         }
@@ -226,13 +221,8 @@ namespace INFOGR2023Template
                 foreach (Primitive primitiveObject in scene.primitives)
                 {
                     Intersection shadowIntersection = new Intersection(shadowRay, primitiveObject);
-                    if (shadowIntersection.distance > 0.001)
+                    if (shadowIntersection.distance > 0.0001)
                     {
-                        //Light is blocked -> shadow
-                        if (debugX % 100 == 0)
-                        {
-                            screen.Line(tx(shadowIntersection.position.X), ty(shadowIntersection.position.Z), tx(shadowIntersection.position.X - shadowRay.D.X * shadowRay.t), ty(shadowIntersection.position.Z - shadowRay.D.Z * shadowRay.t), 0x1e1e1e);
-                        }
                         shadowRayHit = true;
                     }
                 }
@@ -289,17 +279,44 @@ namespace INFOGR2023Template
             Vector3 SpecularShading = (float)Math.Pow(Math.Max(0, glossyAngle), glossiness) * GlossyColor;
 
             return Lradiance * (DiffuseShading + SpecularShading);
-        }
+        }   
 
-         
         public void RenderDebug()
         {
-            screen.Print(camera.position.ToString(), 0, 0, 0xffffff);
+            //screen.Print(camera.position.ToString(), 0, 0, 0xffffff);
             // plot the camera
             screen.Plot(tx(camera.position.X), ty(camera.position.Z), 0xffffff);
 
             // use a line to visualize the screen plane
             screen.Line(tx(camera.p0.X), ty(camera.p0.Z), tx(camera.p1.X), ty(camera.p1.Z), 0xffffff);
+
+            for (int x = 0, n = 20; x < screen.width / 2; x++)
+            {
+                if (x % n != 0) continue;
+
+                float a = x / ((float)screen.width / 2), b = (screen.height / 2) / (float)screen.height;
+                var u = camera.p1 - camera.p0;
+                var v = camera.p2 - camera.p0;
+                var direction = camera.p0 + a * u + b * v - camera.position;
+
+                var ray = new Ray(camera.position, Vector3.Normalize(direction), 10f);
+                (Intersection? closestIntersection, Primitive primitive) = CalculateClosestIntersection(ray);
+                float distance;
+                int color;
+                if (closestIntersection?.distance != null)
+                {
+                    distance = (float)closestIntersection.distance;
+                    color = 0xffff66;
+                } else
+                {
+                    distance = 10f;
+                    color = 0xff0000;
+                }
+
+                var intersection = new Vector2(camera.position.X, camera.position.Z) + new Vector2(ray.D.X, ray.D.Z) * distance;
+
+                screen.Line(tx(camera.position.X), ty(camera.position.Z), tx(intersection.X), ty(intersection.Y), color);
+            }
 
             foreach (var primitive in scene.primitives)
             {
@@ -314,9 +331,10 @@ namespace INFOGR2023Template
                             screen.Plot(tx(x), ty(y), color(s.color));
                         }
                         break;
-                    case Triangle t:
-                        Console.WriteLine("in");
+                    case Pyramide t:
                         screen.Line(tx((int)t.vert0.X), ty((int)t.vert0.Z), tx((int)t.vert1.X), ty((int)t.vert0.Z), color(t.color));
+                        screen.Line(tx((int)t.vert0.X), ty((int)t.vert0.Z), tx((int)t.vert2.X), ty((int)t.vert2.Z), color(t.color));
+                        screen.Line(tx((int)t.vert1.X), ty((int)t.vert1.Z), tx((int)t.vert2.X), ty((int)t.vert2.Z), color(t.color));
                         break;
                 }
             }

@@ -57,11 +57,10 @@ namespace INFOGR2023Template
 
         public bool Texture = false;
 
-        public Plane(Vector3 normal, float distance, Vector3 point, Vector3 color, float glossiness, float pureSpecular, bool texture) : base(color)
+        public Plane(Vector3 normal, Vector3 point, Vector3 color, float glossiness, float pureSpecular, bool texture) : base(color)
         {
             this.normal = normal;
             this.point = point;
-            this.distance = distance;
             this.type = "plane";
             this.glossiness = glossiness;
             this.pureSpecular = pureSpecular;
@@ -93,9 +92,25 @@ namespace INFOGR2023Template
             this.edge1 = vert1 - vert0;
             this.edge2 = vert2 - vert0;
 
-            this.normal = Vector3.Cross(this.edge1, this.edge2);
+            this.normal = Vector3.Normalize(Vector3.Cross(this.edge1, this.edge2));            
+        }
+    }
 
-            
+    public class Pyramide : Primitive
+    {
+        public Vector3 vert0, vert1, vert2, hor3;
+        public Pyramide(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 color, float glossiness, float pureSpecular, Raytracer raytracer) : base(color)
+        {
+            this.vert0 = v0;
+            this.vert1 = v1;
+            this.vert2 = v2;
+            this.hor3 = v3;
+
+            //raytracer.scene.primitives.Add(new Triangle(v0, v1, v2, this.color, this.glossiness, this.pureSpecular));
+            raytracer.scene.primitives.Add(new Triangle(v0, v3, v1, this.color, this.glossiness, this.pureSpecular));
+            raytracer.scene.primitives.Add(new Triangle(v0, v2, v3, this.color, this.glossiness, this.pureSpecular));
+            raytracer.scene.primitives.Add(new Triangle(v2, v3, v1, this.color, this.glossiness, this.pureSpecular));
+
         }
     }
 }
