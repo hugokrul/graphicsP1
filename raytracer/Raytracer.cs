@@ -1,15 +1,5 @@
-﻿using System;
-//using System.Collections.Generic;
-//using System.Diagnostics;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
-//using OpenTK.Windowing.Common;
-//using OpenTK.Windowing.Common.Input;
-//using static System.Formats.Asn1.AsnWriter;
-//using Microsoft.VisualBasic;
 
 namespace INFOGR2023Template
 {

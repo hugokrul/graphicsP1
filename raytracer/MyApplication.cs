@@ -1,6 +1,4 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Common.Input;
 
 namespace INFOGR2023Template
 {
