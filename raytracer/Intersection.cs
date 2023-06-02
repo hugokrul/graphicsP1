@@ -108,10 +108,14 @@ namespace INFOGR2023Template
                     this.position = intersection;
                     this.normal = p.normal;
 
-                    if (p.Texture) //texture
+                    if (p.Texture) //if texturing is enabled
                     {
+                        //Get the original point of the texturing plane
                         var op = ray.E + ray.D * t;
+                        //The ScalarU is the dot product of the original point and the Texturing U
+                        //The texturingU and V are the U and V components of the plane
                         p.scalarU = Vector3.Dot(op, p.TexturingU);
+                        //To eliminate 2 rows lining up in the middle after going into the negative numbers add one and make the negative number positive
                         if (p.scalarU < 0) {
                             p.scalarU = 1 + -p.scalarU;
                         }
