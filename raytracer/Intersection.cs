@@ -131,9 +131,11 @@ namespace INFOGR2023Template
 
         public void intersectWithTriangle(Triangle triangle, Ray ray)
         {
+            // makes planes from each sides of the triangle. this way it's easier to calculate if ray hits the triangle or not.
             Plane plane = new Plane(Vector3.Cross(triangle.edge1, triangle.edge2).Normalized(), triangle.vert0, new Vector3(255, 0, 0), 1, 0, false);
             var intersection = new Intersection(ray, plane);
 
+            // if there is no distance there is no intersection
             if (intersection.distance == null)
             {
                 return;
@@ -142,6 +144,7 @@ namespace INFOGR2023Template
             var planeNormal = plane.normal;
             var intersectionPoint = ray.E + ray.D * intersection.distance;
 
+            // if the ray is outside of the triangle
             if (
                 Vector3.Dot(Vector3.Cross((triangle.vert1 - triangle.vert0), (Vector3)(intersectionPoint - triangle.vert0)), planeNormal) < 0 ||
                 Vector3.Dot(Vector3.Cross((triangle.vert2 - triangle.vert1), (Vector3)(intersectionPoint - triangle.vert1)), planeNormal) < 0 ||
